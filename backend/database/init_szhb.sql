@@ -4,6 +4,12 @@
 -- ------------------------------------------------------
 -- Server version	8.0.41
 
+-- 创建数据库（如果不存在）
+CREATE DATABASE IF NOT EXISTS `szhb` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 使用数据库
+USE `szhb`;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
