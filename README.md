@@ -22,27 +22,9 @@
 
 #### 导入数据库
 
-**方式一：使用 SQL 文件（推荐，会自动创建数据库）**
-
 ```bash
-# 导入完整数据库（会自动创建 szhb 数据库）
+# 导入完整数据库（推荐）
 mysql -u root -p < backend/database/init_szhb.sql
-```
-
-**方式二：手动创建数据库后导入**
-
-```bash
-# 1. 登录 MySQL
-mysql -u root -p
-
-# 2. 创建数据库
-CREATE DATABASE szhb DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-# 3. 退出 MySQL
-exit
-
-# 4. 导入数据（指定数据库）
-mysql -u root -p szhb < backend/database/init_szhb.sql
 ```
 
 #### 测试账号
