@@ -1,0 +1,20 @@
+{
+  "name": "szhb-frontend",
+  "version": "1.0.0",
+  "description": "数智湖北前端项目",
+  "main": "index.js",
+  "scripts": {
+    "dev": "live-server --port=3000 --open=./pages/login.html",
+    "start": "live-server --port=3000",
+    "build": "echo 'Frontend build completed'"
+  },
+  "keywords": [
+    "data-visualization",
+    "hubei"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

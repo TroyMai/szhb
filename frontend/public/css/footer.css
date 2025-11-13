@@ -1,0 +1,101 @@
+/**
+ * Footer 样式文件
+ */
+
+.footer {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 3rem 0 1.5rem;
+  margin-top: 4rem;
+}
+
+.footer-content {
+  max-width: 7xl;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.footer-section-content {
+  font-size: 0.875rem;
+  line-height: 1.8;
+  color: #64748b;
+}
+
+.footer-link {
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.footer-link:hover {
+  color: #4f46e5;
+}
+
+.footer-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-member-item {
+  padding: 0.25rem 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.footer-divider {
+  border-top: 1px solid #e2e8f0;
+  margin: 2rem 0 1rem;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 1.5rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.footer-bottom-text {
+  margin: 0.25rem 0;
+}
+
+.footer-logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .footer {
+    padding: 2rem 0 1rem;
+  }
+}
+

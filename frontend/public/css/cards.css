@@ -1,0 +1,398 @@
+/**
+ * 卡片样式文件
+ * 包含通用卡片、统计卡片、功能卡片等样式
+ */
+
+/* ========== 通用卡片样式 ========== */
+.stat-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+.stat-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+/* ========== 功能导航卡片样式 ========== */
+.func-card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  border-left: 4px solid;
+}
+
+.func-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.func-card-green {
+  border-left-color: #10b981;
+}
+
+.func-card-purple {
+  border-left-color: #a855f7;
+}
+
+.func-card-orange {
+  border-left-color: #f97316;
+}
+
+/* ========== 统计项样式 ========== */
+.stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.stat-item:hover::before {
+  left: 100%;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* 使用 indigo-purple 色系的不同变体 - 调暗颜色 */
+.stat-item-blue {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.stat-item-blue:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.stat-item-green {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.stat-item-green:hover {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+.stat-item-purple {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border-color: rgba(168, 85, 247, 0.2);
+}
+
+.stat-item-purple:hover {
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+}
+
+.stat-item-orange {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-color: rgba(251, 146, 60, 0.2);
+}
+
+.stat-item-orange:hover {
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  border-color: rgba(251, 146, 60, 0.5);
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.25);
+}
+
+.stat-item-cyan {
+  background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
+.stat-item-cyan:hover {
+  background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%);
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.25);
+}
+
+.stat-item-indigo {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.stat-item-indigo:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.stat-item-pink {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.stat-item-pink:hover {
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+}
+
+.stat-item-red {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.stat-item-red:hover {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.stat-item-teal {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+.stat-item-teal:hover {
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%);
+  border-color: rgba(20, 184, 166, 0.5);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+}
+
+.stat-item-yellow {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border-color: rgba(234, 179, 8, 0.2);
+}
+
+.stat-item-yellow:hover {
+  background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+  border-color: rgba(234, 179, 8, 0.5);
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.25);
+}
+
+.stat-item-gray {
+  background-color: #f9fafb;
+  border-color: rgba(156, 163, 175, 0.2);
+}
+
+.stat-item-gray:hover {
+  background-color: #f3f4f6;
+  border-color: rgba(156, 163, 175, 0.4);
+}
+
+/* ========== 用户统计球体样式 ========== */
+.user-stat-container {
+  position: relative;
+}
+
+.user-stat-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid;
+}
+
+.user-stat-box-blue {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.user-stat-box-purple {
+  background-color: #faf5ff;
+  border-color: #e9d5ff;
+}
+
+.user-stat-box-orange {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.user-stat-sphere {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.user-stat-sphere-sm {
+  width: 6rem;
+  height: 6rem;
+}
+
+.user-stat-sphere-lg {
+  width: 8rem;
+  height: 8rem;
+}
+
+.user-stat-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.3;
+  filter: blur(1.5rem);
+}
+
+.user-stat-glow-blue {
+  background-color: #bfdbfe;
+}
+
+.user-stat-glow-purple {
+  background-color: #e9d5ff;
+}
+
+.user-stat-glow-orange {
+  background-color: #fed7aa;
+}
+
+.user-stat-ball {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.user-stat-ball-blue {
+  background: linear-gradient(to bottom right, #60a5fa, #2563eb);
+}
+
+.user-stat-ball-purple {
+  background: linear-gradient(to bottom right, #a78bfa, #9333ea);
+}
+
+.user-stat-ball-orange {
+  background: linear-gradient(to bottom right, #fb923c, #ea580c);
+}
+
+.user-stat-percent {
+  color: white;
+  font-weight: 700;
+}
+
+.user-stat-percent-sm {
+  font-size: 1.5rem;
+}
+
+.user-stat-percent-lg {
+  font-size: 1.875rem;
+}
+
+.user-stat-label {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.user-stat-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.user-stat-total {
+  text-align: center;
+}
+
+.user-stat-total-number {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 0.5rem;
+}
+
+.user-stat-total-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ========== 图表容器样式 ========== */
+.chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.chart-container-sm {
+  height: 150px;
+}
+
+.chart-container-md {
+  height: 300px;
+}
+
+.chart-container-lg {
+  height: 400px;
+}
+
+.chart-legend {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  font-size: 0.75rem;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.2rem 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.chart-legend-item:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+.chart-legend-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.chart-legend-label {
+  color: #374151;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-legend-value {
+  color: #4b5563;
+  font-weight: 600;
+}
+

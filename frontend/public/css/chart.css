@@ -1,0 +1,81 @@
+/**
+ * Chart.js 图表样式
+ * 用于统一控制图表容器高度
+ */
+
+/* 图表容器基础样式 */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* 小图表容器 */
+.chart-container-sm {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* 大图表容器 */
+.chart-container-lg {
+    position: relative;
+    height: 400px;
+    width: 100%;
+}
+
+/* 确保 canvas 填满容器 */
+.chart-container canvas,
+.chart-container-sm canvas,
+.chart-container-lg canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* 图例样式 */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.chart-legend-item:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+}
+
+.chart-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.chart-legend-label {
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 500;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-legend-value {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 400;
+}
+

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据详情 - 数智湖北</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="../public/css/common.css">
+    <link rel="stylesheet" href="../public/css/components.css">
+    <link rel="stylesheet" href="../public/css/footer.css">
+    <link rel="stylesheet" href="../public/css/cards.css">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div id="header"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 数据基本信息 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h1 id="dataTitle" class="text-2xl font-bold text-gray-900 mb-2">数据标题</h1>
+                    <p id="dataDescription" class="text-gray-600">数据描述</p>
+                </div>
+                <div class="flex space-x-3" id="favoriteButtonContainer">
+                    <!-- 收藏按钮将通过组件动态生成 -->
+                    <button id="exportBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">导出数据</button>
+                </div>
+            </div>
+
+            <!-- 数据元信息 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+                <div>
+                    <span class="text-sm text-gray-500">类别：</span>
+                    <span id="dataCategory" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">来源：</span>
+                    <span id="dataSource" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">数据类型：</span>
+                    <span id="dataType" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">创建时间：</span>
+                    <span id="dataCreatedAt" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">记录数：</span>
+                    <span id="dataRecordCount" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">状态：</span>
+                    <span id="dataStatus" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">上传者：</span>
+                    <span id="dataUploader" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">更新时间：</span>
+                    <span id="dataUpdatedAt" class="text-sm font-medium text-gray-900 ml-2">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 数据可视化 -->
+        <div id="visualizationContainer" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <!-- 动态内容：根据数据标题显示不同的可视化方案 -->
+        </div>
+
+        <!-- 数据记录表格 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800 mb-0">数据记录</h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">序号</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">记录日期</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数值</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文本值</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">备注</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTableBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 记录分页 -->
+            <div id="recordPagination"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script type="module">
+        import api from '../utils/api.js';
+        import auth from '../utils/auth.js';
+        import header from '../components/header.js';
+        import footer from '../components/footer.js';
+        import common from '../utils/common.js';
+        import favoriteButton from '../components/favoriteButton.js';
+        import pagination from '../components/pagination.js';
+        import mapVisualization from '../components/mapVisualization.js';
+        
+        // 检查登录状态（使用路由守卫）
+        const routerModule = await import('../utils/router.js');
+        const router = routerModule.default;
+        router.beforeEnter('dataDetail');
+
+        // 初始化导航栏
+        header.initHeader();
+        
+        // 初始化 Footer
+        footer.initFooter();
+
+        // 从 URL 参数获取数据标题
+        const urlParams = router.getParams();
+        const dataTitle = urlParams.title || urlParams.dataTitle;
+        
+        if (!dataTitle) {
+            common.showMessage('缺少数据标题参数，请从数据列表页面进入', 'error');
+            setTimeout(() => {
+                router.navigate('query');
+            }, 2000);
+        }
+
+        let dataId = null;
+        let visualizationType = null; // 'monthly' | 'city' | 'unknown'
+
+        let currentRecordPage = 1;
+        let recordPageSize = 20;
+        let recordTotalCount = 0;
+        let currentChart = null;
+        let dataRecords = []; // 存储数据记录
+
+        // 格式化日期
+        const formatDate = (dateString) => {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+
+        // 存储数据详情和月度数据
+        let dataDetail = null;
+        let monthlyData = [];
+
+        // 加载数据详情
+        const loadDataDetail = async () => {
+            try {
+                if (!dataTitle) {
+                    return;
+                }
+
+                // 根据标题获取数据详情
+                const encodedTitle = encodeURIComponent(dataTitle);
+                const response = await api.get(`/data/by-title/${encodedTitle}`);
+                if (!response.success || !response.data) {
+                    throw new Error('获取数据详情失败，请确保数据已导入');
+                }
+
+                dataDetail = response.data;
+                dataId = dataDetail.id; // 保存数据ID供后续使用
+
+                // 确定可视化类型（从后端返回的 visualizationType）
+                // 'monthly' -> 图表可视化（月度数据）
+                // 'city' -> 地图可视化（城市数据）
+                // 'unknown' -> 不支持可视化
+                visualizationType = dataDetail.visualizationType || 'unknown';
+
+                // 填充基本信息
+                document.getElementById('dataTitle').textContent = dataDetail.title || '数据标题';
+                document.getElementById('dataDescription').textContent = dataDetail.description || '数据描述';
+                document.getElementById('dataCategory').textContent = dataDetail.category || '-';
+                document.getElementById('dataSource').textContent = dataDetail.source || '-';
+                document.getElementById('dataType').textContent = dataDetail.data_type || '-';
+                document.getElementById('dataCreatedAt').textContent = formatDate(dataDetail.created_at);
+                document.getElementById('dataStatus').textContent = dataDetail.status === 'approved' ? '已审核' : '待审核';
+                document.getElementById('dataUploader').textContent = dataDetail.uploader_name || '-';
+                document.getElementById('dataUpdatedAt').textContent = formatDate(dataDetail.updated_at);
+
+                // 获取记录总数
+                const recordsResponse = await api.get(`/data/${dataId}/records`, { page: 1, pageSize: 1 });
+                if (recordsResponse.success) {
+                    recordTotalCount = recordsResponse.data.total || 0;
+                    document.getElementById('dataRecordCount').textContent = `${recordTotalCount} 条`;
+                }
+
+                // 初始化收藏按钮
+                const favoriteBtnHtml = favoriteButton.createTextButton(dataId, false, 'favoriteBtn');
+                const container = document.getElementById('favoriteButtonContainer');
+                if (container) {
+                    container.insertAdjacentHTML('afterbegin', favoriteBtnHtml);
+                    await favoriteButton.initTextButton('favoriteBtn', dataId);
+                }
+
+                // 根据可视化类型初始化不同的可视化方案
+                if (visualizationType === 'monthly') {
+                    await initChartVisualization();
+                } else if (visualizationType === 'city') {
+                    await initMapVisualization();
+                } else {
+                    showUnsupportedVisualization();
+                }
+
+                // 加载数据记录
+                loadRecords(1);
+
+            } catch (error) {
+                console.error('加载数据详情失败:', error);
+                common.showMessage('加载数据详情失败: ' + error.message, 'error');
+            }
+        };
+
+        // 初始化图表可视化
+        const initChartVisualization = async () => {
+            const container = document.getElementById('visualizationContainer');
+            container.innerHTML = `
+                <h2 class="text-xl font-bold text-gray-800 mb-6">数据集可视化</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2">
+                        <div class="bg-gray-50 rounded-lg p-6" style="height: 400px;">
+                            <div id="chartContainer" class="w-full h-full" style="position: relative;">
+                                <canvas id="dynamicChart" style="max-width: 100%; max-height: 100%;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-1">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">图表类型</h3>
+                            <select id="chartType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="line" selected>折线图</option>
+                                <option value="bar">柱状图</option>
+                                <option value="pie">饼图</option>
+                                <option value="radar">雷达图</option>
+                            </select>
+                        </div>
+                        <!-- 图表说明 -->
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">图表说明</h3>
+                            <div id="chartInfo" class="text-sm text-gray-600">
+                                <p class="text-gray-500">图表说明将在此显示。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 加载月度统计数据（用于图表）
+            try {
+                const response = await api.get(`/data/${dataId}/records/months`);
+                if (response.success && response.data) {
+                    monthlyData = response.data;
+                    
+                    // 数据加载完成后，自动生成默认图表（折线图）
+                    if (monthlyData.length > 0) {
+                        generateChart();
+                    }
+                }
+            } catch (error) {
+                console.error('加载月度统计失败:', error);
+            }
+
+            // 绑定图表类型下拉框变化事件，自动生成图表
+            const chartTypeSelect = document.getElementById('chartType');
+            chartTypeSelect.addEventListener('change', () => {
+                if (monthlyData.length > 0) {
+                    generateChart();
+                }
+                updateChartInfo(chartTypeSelect.value);
+            });
+            
+            // 初始化图表说明（显示默认图表类型）
+            updateChartInfo('line');
+        };
+        
+        // 更新图表说明
+        const updateChartInfo = (chartType) => {
+            const chartInfo = document.getElementById('chartInfo');
+            if (!chartInfo) return;
+            
+            const chartDescriptions = {
+                'line': '折线图通过连接数据点形成折线，能够清晰地展示数据随时间的变化趋势。适合展示连续数据的趋势变化，可以直观地看出数据的上升、下降或波动规律。',
+                'bar': '柱状图通过不同高度的柱形来比较不同类别的数据值。适合展示分类数据的对比，能够直观地看出各个月份之间的数值差异。',
+                'pie': '饼图通过扇形面积的大小来表示各部分在总体中的占比。适合展示数据的构成比例，能够直观地看出各个月份数据在全年总量中的占比关系。',
+                'radar': '雷达图通过多个维度展示数据的综合特征，能够同时比较多个指标。适合展示多维数据的综合表现，可以直观地看出数据在不同维度上的分布情况。'
+            };
+            
+            const description = chartDescriptions[chartType] || chartDescriptions['line'];
+            
+            chartInfo.innerHTML = `<p>${description}</p>`;
+        };
+
+        // 初始化地图可视化
+        const initMapVisualization = async () => {
+            const container = document.getElementById('visualizationContainer');
+            // 直接创建地图内容，不包含外层卡片（因为 visualizationContainer 已经是卡片了）
+            container.innerHTML = `
+                <h2 class="text-xl font-bold text-gray-800 mb-6">数据集可视化</h2>
+                <div id="dataDetailMapMap" style="height: 500px; position: relative;"></div>
+                <div class="mt-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-blue-600 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">高值区域</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">中值区域</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                            <span class="text-sm text-gray-600">低值区域</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span id="dataDetailMapStats">加载中...</span>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const response = await api.get('/visualization/map', {
+                    dataTitle: dataDetail.title
+                });
+
+                if (response.success && response.data) {
+                    if (response.data.length === 0) {
+                        throw new Error('地图数据为空，请先导入数据');
+                    }
+
+                    // 从第一条记录的 metadata 中获取单位，如果没有则根据标题智能识别
+                    let unit = '';
+                    if (response.data && response.data.length > 0) {
+                        // 尝试从数据中获取单位（如果后端返回了 unit 字段）
+                        unit = response.data[0].unit || '';
+                    }
+                    
+                    // 如果还是没有，从第一条记录的 metadata 中获取（需要后端返回完整数据）
+                    // 否则根据标题智能识别（向后兼容）
+                    if (!unit) {
+                        if (dataDetail.title.includes('降水量')) {
+                            unit = 'mm';
+                        } else if (dataDetail.title.includes('企业注册') || dataDetail.title.includes('注册数量')) {
+                            unit = '家';
+                        } else if (dataDetail.title.includes('研发经费') || dataDetail.title.includes('经费投入')) {
+                            unit = '亿元';
+                        } else if (dataDetail.title.includes('气温') || dataDetail.title.includes('平均气温')) {
+                            unit = '℃';
+                        } else if (dataDetail.title.includes('就业率') || dataDetail.title.includes('合格率')) {
+                            unit = '%';
+                        }
+                    }
+                    
+                    await mapVisualization.initMapVisualization({
+                        containerId: 'dataDetailMap',
+                        mapContainerId: 'dataDetailMapMap', // 指定地图容器ID
+                        statsContainerId: 'dataDetailMapStats', // 指定统计信息容器ID
+                        data: response.data,
+                        mapName: 'hubei',
+                        unit: unit
+                    });
+                } else {
+                    throw new Error(response.message || '获取地图数据失败');
+                }
+            } catch (error) {
+                console.error('初始化地图可视化失败:', error);
+                const mapContainer = document.getElementById('dataDetailMap');
+                if (mapContainer) {
+                    mapContainer.innerHTML = `
+                        <div class="flex items-center justify-center h-full text-gray-500">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">⚠️</div>
+                                <p class="font-semibold mb-2">加载地图数据失败</p>
+                                <p class="text-sm">${error.message || '未知错误'}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        // 显示不支持的可视化提示
+        const showUnsupportedVisualization = () => {
+            const container = document.getElementById('visualizationContainer');
+            container.innerHTML = `
+                <h2 class="text-xl font-bold text-gray-800 mb-6">数据集可视化</h2>
+                <div class="bg-gray-50 rounded-lg p-12 text-center">
+                    <div class="text-6xl mb-4">📋</div>
+                    <p class="text-lg font-semibold text-gray-700 mb-2">该数据暂不支持可视化展示</p>
+                    <p class="text-sm text-gray-500 mb-4">当前支持的数据类型：</p>
+                    <ul class="text-sm text-gray-600 space-y-1 mb-6">
+                        <li>• 月度数据（metadata 包含 month 字段）→ 图表可视化</li>
+                        <li>• 城市数据（metadata 包含 city 字段）→ 地图可视化</li>
+                    </ul>
+                    <p class="text-xs text-gray-400">请确保数据记录的 metadata 字段包含 month 或 city 信息</p>
+                </div>
+            `;
+        };
+
+
+        // 生成图表
+        const generateChart = () => {
+            const chartType = document.getElementById('chartType')?.value || 'line';
+
+            // 检查是否有数据
+            if (monthlyData.length === 0) {
+                const chartContainer = document.getElementById('chartContainer');
+                if (chartContainer) {
+                    chartContainer.innerHTML = `
+                        <div class="flex items-center justify-center h-full text-gray-400">
+                            <div class="text-center">
+                                <div class="text-4xl mb-4">📊</div>
+                                <p class="text-lg">暂无数据</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // 生成图表数据
+            const chartData = generateChartData(chartType);
+
+            // 销毁旧图表
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // 确保画布存在
+            let canvas = document.getElementById('dynamicChart');
+            if (!canvas) {
+                const chartContainer = document.getElementById('chartContainer');
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<canvas id="dynamicChart" style="max-width: 100%; max-height: 100%;"></canvas>';
+                    canvas = document.getElementById('dynamicChart');
+                } else {
+                    return;
+                }
+            }
+
+            // 创建新图表
+            const ctx = canvas.getContext('2d');
+            currentChart = new Chart(ctx, chartData);
+        };
+
+        // 生成图表数据
+        const generateChartData = (chartType) => {
+            // 使用月度数据（适配企业注册数量统计）
+            const labels = monthlyData.map(item => item.monthName || `${item.month}月`);
+            // 根据数据标题使用不同的字段
+            const dataValues = monthlyData.map(item => {
+                // 企业注册数量统计使用 count 字段，研发经费使用 funding 字段
+                return item.count || item.funding || item.value || 0;
+            });
+
+            let datasets;
+
+            // 根据数据标题确定标签和单位（优先从 metadata 读取单位）
+            let dataLabel = '数据值';
+            let yAxisLabel = '数据值';
+            
+            // 从第一条月度数据中获取单位
+            let unit = '';
+            if (monthlyData && monthlyData.length > 0) {
+                unit = monthlyData[0].unit || '';
+            }
+            
+            // 如果没有单位，根据标题关键词自动识别（向后兼容）
+            if (!unit) {
+                if (dataDetail.title.includes('企业注册') || dataDetail.title.includes('注册数量')) {
+                    unit = '家';
+                } else if (dataDetail.title.includes('研发经费') || dataDetail.title.includes('经费投入')) {
+                    unit = '亿元';
+                } else if (dataDetail.title.includes('降水量')) {
+                    unit = 'mm';
+                } else if (dataDetail.title.includes('气温') || dataDetail.title.includes('平均气温')) {
+                    unit = '℃';
+                } else if (dataDetail.title.includes('就业率') || dataDetail.title.includes('合格率')) {
+                    unit = '%';
+                }
+            }
+            
+            // 构建标签
+            if (unit) {
+                dataLabel = `数据值（${unit}）`;
+                yAxisLabel = `数据值（${unit}）`;
+            }
+
+            switch (chartType) {
+                case 'line':
+                    datasets = [{
+                        label: dataLabel,
+                        data: dataValues,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }];
+                    break;
+
+                case 'bar':
+                    datasets = [{
+                        label: dataLabel,
+                        data: dataValues,
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)'
+                    }];
+                    break;
+
+                case 'pie':
+                    // 使用 HSL 颜色空间，按顺时针方向渐变
+                    // 从蓝色 (240度) 开始，顺时针渐变到紫色 (300度)，覆盖60度色相范围
+                    const generatePieColors = (count) => {
+                        const colors = [];
+                        const startHue = 240;  // 蓝色起始色相
+                        const endHue = 300;   // 紫色结束色相（覆盖60度范围）
+                        
+                        for (let i = 0; i < count; i++) {
+                            // 计算当前扇区的色相（按比例分配，顺时针渐变）
+                            const progress = i / count;
+                            const hue = startHue + (endHue - startHue) * progress;
+                            
+                            // 饱和度和亮度也按进度变化，形成更明显的渐变
+                            // 饱和度：从 70% 到 85%，中间扇区更饱和
+                            const saturation = 70 + (15 * Math.sin(progress * Math.PI));
+                            // 亮度：从 50% 到 65%，形成明暗变化
+                            const lightness = 50 + (15 * (1 - Math.abs(progress - 0.5) * 2));
+                            
+                            // 转换为 RGB
+                            const hslToRgb = (h, s, l) => {
+                                h = h % 360;
+                                h /= 360;
+                                s /= 100;
+                                l /= 100;
+                                const c = (1 - Math.abs(2 * l - 1)) * s;
+                                const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+                                const m = l - c / 2;
+                                let r, g, b;
+                                if (h < 1/6) {
+                                    r = c; g = x; b = 0;
+                                } else if (h < 2/6) {
+                                    r = x; g = c; b = 0;
+                                } else if (h < 3/6) {
+                                    r = 0; g = c; b = x;
+                                } else if (h < 4/6) {
+                                    r = 0; g = x; b = c;
+                                } else if (h < 5/6) {
+                                    r = x; g = 0; b = c;
+                                } else {
+                                    r = c; g = 0; b = x;
+                                }
+                                return [
+                                    Math.round((r + m) * 255),
+                                    Math.round((g + m) * 255),
+                                    Math.round((b + m) * 255)
+                                ];
+                            };
+                            
+                            const [r, g, b] = hslToRgb(hue, saturation, lightness);
+                            colors.push(`rgba(${r}, ${g}, ${b}, 0.95)`);
+                        }
+                        return colors;
+                    };
+                    
+                    const pieColors = generatePieColors(labels.length);
+                    datasets = [{
+                        label: dataLabel,
+                        data: dataValues,
+                        backgroundColor: pieColors,
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 2
+                    }];
+                    break;
+
+                case 'radar':
+                    datasets = [{
+                        label: dataLabel,
+                        data: dataValues,
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        pointBackgroundColor: 'rgb(99, 102, 241)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(99, 102, 241)'
+                    }];
+                    break;
+
+                default:
+                    labels = [];
+                    datasets = [];
+            }
+
+            // 通用配置
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        enabled: true
+                    }
+                }
+            };
+
+            // 根据图表类型添加特定配置
+            if (chartType === 'bar' || chartType === 'line') {
+                commonOptions.scales = {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '月份'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: yAxisLabel
+                        }
+                    }
+                };
+            }
+
+            if (chartType === 'radar') {
+                const maxValue = dataValues.length > 0 ? Math.max(...dataValues) * 1.2 : 100;
+                commonOptions.scales = {
+                    r: {
+                        beginAtZero: true,
+                        max: maxValue
+                    }
+                };
+            }
+
+            return {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: commonOptions
+            };
+        };
+
+        // 加载数据记录（从API获取）
+        const loadRecords = async (page = 1) => {
+            try {
+                const response = await api.get(`/data/${dataId}/records`, {
+                    page: page,
+                    pageSize: recordPageSize
+                });
+
+                if (response.success && response.data) {
+                    const { list, total } = response.data;
+                    recordTotalCount = total;
+                    currentRecordPage = page;
+                    
+                    renderRecordsTable(list);
+                    renderRecordPagination(page, Math.ceil(total / recordPageSize));
+                } else {
+                    throw new Error('获取数据记录失败');
+                }
+
+            } catch (error) {
+                console.error('加载数据记录失败:', error);
+                common.showMessage('加载数据记录失败: ' + error.message, 'error');
+            }
+        };
+
+        // 渲染记录表格
+        const renderRecordsTable = (records) => {
+            const tbody = document.getElementById('recordsTableBody');
+            if (records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">暂无数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = records.map((record, index) => {
+                // 文本值列：优先使用 metadata.monthName（月度数据）或 metadata.city（城市数据）
+                let textValue = '-';
+                if (record.metadata) {
+                    if (record.metadata.monthName) {
+                        textValue = record.metadata.monthName;
+                    } else if (record.metadata.city) {
+                        textValue = record.metadata.city;
+                    }
+                }
+                if (textValue === '-' && record.text_value) {
+                    textValue = record.text_value;
+                }
+                
+                // 根据数据类型格式化数值显示（优先从 metadata.unit 读取单位）
+                let valueDisplay = '-';
+                if (record.value !== null && record.value !== undefined) {
+                    // 优先使用 metadata 中的单位
+                    const unit = record.metadata?.unit || '';
+                    
+                    if (unit) {
+                        // 根据单位类型决定显示格式
+                        if (unit === '家' || unit === '件' || unit === '所' || unit === '个' || unit === '人' || unit === '天' || unit === '公里' || unit === '万人次') {
+                            valueDisplay = `${parseInt(record.value)} ${unit}`;
+                        } else if (unit === '%' || unit === '℃') {
+                            valueDisplay = `${parseFloat(record.value).toFixed(1)} ${unit}`;
+                        } else if (unit === 'mm' || unit === '亿元' || unit === '元') {
+                            // mm 保留1位小数，亿元和元保留2位小数
+                            const decimals = unit === 'mm' ? 1 : 2;
+                            valueDisplay = `${parseFloat(record.value).toFixed(decimals)} ${unit}`;
+                        } else {
+                            valueDisplay = `${parseFloat(record.value).toFixed(2)} ${unit}`;
+                        }
+                    } else {
+                        // 如果没有单位，根据标题关键词智能识别（向后兼容）
+                        if (dataDetail.title.includes('企业注册') || dataDetail.title.includes('注册数量')) {
+                            valueDisplay = `${parseInt(record.value)} 家`;
+                        } else if (dataDetail.title.includes('降水量')) {
+                            valueDisplay = `${parseFloat(record.value).toFixed(1)} mm`;
+                        } else if (dataDetail.title.includes('研发经费') || dataDetail.title.includes('经费投入')) {
+                            valueDisplay = `${parseFloat(record.value).toFixed(2)} 亿元`;
+                        } else {
+                            valueDisplay = parseFloat(record.value).toFixed(2);
+                        }
+                    }
+                }
+                
+                // 备注列：优先使用 metadata.description，否则根据数据类型生成
+                let remark = '-';
+                if (record.metadata?.description) {
+                    remark = record.metadata.description;
+                } else if (record.metadata?.month) {
+                    remark = `${record.metadata.month}月数据`;
+                } else if (record.metadata?.city) {
+                    remark = `${record.metadata.city}数据`;
+                }
+                
+                return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${(currentRecordPage - 1) * recordPageSize + index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record.record_date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${valueDisplay}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${textValue}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${remark}</td>
+                </tr>
+            `;
+            }).join('');
+        };
+
+        // 渲染记录分页
+        const renderRecordPagination = (page, totalPages) => {
+            // 初始化分页HTML（如果还没有）
+            const paginationContainer = document.getElementById('recordPagination');
+            if (!paginationContainer.innerHTML.trim()) {
+                paginationContainer.innerHTML = pagination.createPaginationHTML('recordPagination', true);
+            }
+            
+            pagination.renderPagination({
+                page: page,
+                totalPages: totalPages,
+                total: recordTotalCount,
+                pageSize: recordPageSize,
+                containerId: 'recordPagination',
+                onPageChange: (newPage) => {
+                    currentRecordPage = newPage;
+                    loadRecords(newPage);
+                },
+                onPageSizeChange: (newPageSize) => {
+                    recordPageSize = newPageSize;
+                    currentRecordPage = 1;
+                    loadRecords(1);
+                },
+                maxButtons: 5,
+                showPageSize: true
+            });
+        };
+
+        // 导出数据（使用通用导出函数）
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            if (!dataId) {
+                common.showMessage('数据未加载完成，请稍候', 'error');
+                return;
+            }
+
+            try {
+                // 显示加载状态
+                const exportBtn = document.getElementById('exportBtn');
+                const originalText = exportBtn.textContent;
+                exportBtn.disabled = true;
+                exportBtn.textContent = '导出中...';
+
+                await common.exportDataFromAPI(
+                    dataId,
+                    `${dataDetail.title || '数据导出'}_${new Date().toISOString().split('T')[0]}.csv`,
+                    () => {
+                        common.showMessage('导出成功', 'success');
+                        exportBtn.disabled = false;
+                        exportBtn.textContent = originalText;
+                    },
+                    (error) => {
+                        common.showMessage('导出失败: ' + (error.message || '未知错误'), 'error');
+                        exportBtn.disabled = false;
+                        exportBtn.textContent = originalText;
+                    }
+                );
+            } catch (error) {
+                // 错误已在回调中处理
+                const exportBtn = document.getElementById('exportBtn');
+                exportBtn.disabled = false;
+                exportBtn.textContent = '导出数据';
+            }
+        });
+
+
+        // 页面加载时获取数据
+        if (dataTitle) {
+            loadDataDetail();
+        }
+    </script>
+</body>
+</html>
+

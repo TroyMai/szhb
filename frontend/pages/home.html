@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 数智湖北</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/common.css">
+    <link rel="stylesheet" href="../public/css/cards.css">
+    <link rel="stylesheet" href="../public/css/footer.css">
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <div id="header"></div>
+
+    <!-- 主要内容 -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- 功能导航卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="funcCards">
+                <a href="./query.html" class="func-card func-card-green" data-route="query">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">数据查询</h3>
+                        <div class="text-3xl">🔍</div>
+                    </div>
+                    <p class="text-gray-600 text-sm">多条件组合查询数据</p>
+                </a>
+                
+                <a href="./prediction.html" class="func-card func-card-purple" data-route="prediction">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">数据预测</h3>
+                        <div class="text-3xl">📈</div>
+                    </div>
+                    <p class="text-gray-600 text-sm">基于历史数据预测未来趋势</p>
+                </a>
+                
+                <a href="./analysis.html" class="func-card func-card-orange" data-route="analysis">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">决策支持</h3>
+                        <div class="text-3xl">💡</div>
+                    </div>
+                    <p class="text-gray-600 text-sm">问题分析与辅助决策</p>
+                </a>
+            </div>
+
+        <!-- 系统数据统计 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- 数据分类统计 -->
+            <div class="stat-card">
+                <h2 class="stat-card-title">数据分类统计</h2>
+                <div id="categoryStats" class="grid grid-cols-2 gap-2">
+                    <div class="stat-item stat-item-indigo">
+                        <span class="text-gray-700">加载中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据来源统计 -->
+            <div class="stat-card">
+                <h2 class="stat-card-title">数据来源统计</h2>
+                <div class="chart-container chart-container-sm">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+                <div id="sourceLegend" class="chart-legend"></div>
+            </div>
+        </div>
+
+        <!-- 数据趋势图表 -->
+        <div class="stat-card">
+            <h2 class="stat-card-title">数据时间统计</h2>
+            <div class="chart-container chart-container-md">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script type="module">
+        import api from '../utils/api.js';
+        import auth from '../utils/auth.js';
+        import header from '../components/header.js';
+        import footer from '../components/footer.js';
+
+        // 检查登录状态（使用路由守卫）
+        const router = await import('../utils/router.js');
+        router.default.beforeEnter('home');
+
+        // 更新功能卡片链接
+        document.querySelectorAll('[data-route]').forEach(link => {
+            const routeName = link.getAttribute('data-route');
+            link.href = router.default.getPath(routeName);
+        });
+
+        // 初始化导航栏
+        header.initHeader();
+        
+        // 初始化 Footer
+        footer.initFooter();
+
+        // 加载数据分类统计
+        const loadCategoryStats = async () => {
+            try {
+                const response = await api.get('/data/stats/categories');
+                const statsContainer = document.getElementById('categoryStats');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    // 颜色映射 - 使用不同的颜色但保持协调
+                    const colors = {
+                        '科技创新': 'blue',
+                        '教育文化': 'green',
+                        '社会民生': 'purple',
+                        '生态环境': 'cyan',
+                        '气象服务': 'orange',
+                        '商贸流通': 'yellow',
+                        '社保就业': 'pink',
+                        '市场监督': 'indigo',
+                        '医疗卫生': 'red',
+                        '交通运输': 'teal'
+                    };
+                    
+                    const textColors = {
+                        'blue': 'text-blue-600',
+                        'green': 'text-green-600',
+                        'purple': 'text-purple-600',
+                        'orange': 'text-orange-600',
+                        'cyan': 'text-cyan-600',
+                        'yellow': 'text-yellow-600',
+                        'pink': 'text-pink-600',
+                        'indigo': 'text-indigo-600',
+                        'red': 'text-red-600',
+                        'teal': 'text-teal-600'
+                    };
+                    
+                    const router = await import('../utils/router.js');
+                    statsContainer.innerHTML = response.data.map(cat => {
+                        const color = colors[cat.category] || 'indigo';
+                        const textColor = textColors[color] || 'text-indigo-600';
+                        return `
+                            <a href="${router.default.getPath('query', { category: cat.category })}" class="stat-item stat-item-${color}">
+                                <span class="text-gray-700 font-medium">${cat.category}</span>
+                                <span class="font-semibold ${textColor}">${cat.count}条</span>
+                            </a>
+                        `;
+                    }).join('');
+                } else {
+                    // 使用默认数据（API 返回空或失败时）
+                    statsContainer.innerHTML = `
+                        <div class="stat-item stat-item-indigo">
+                            <span class="text-gray-700">暂无数据</span>
+                            <span class="font-semibold text-indigo-600">0条</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+                // 使用默认数据
+                document.getElementById('categoryStats').innerHTML = `
+                    <div class="stat-item stat-item-gray">
+                        <span class="text-gray-700">加载失败，请稍后重试</span>
+                        <span class="font-semibold text-gray-600">-</span>
+                    </div>
+                `;
+            }
+        };
+
+        // 加载数据趋势
+        const loadTrendData = async () => {
+            try {
+                const response = await api.get('/data/stats/trend');
+                if (response.success && response.data) {
+                    initChart(response.data);
+                } else {
+                    // 使用默认数据
+                    initChart(null);
+                }
+            } catch (error) {
+                console.error('加载趋势数据失败:', error);
+                // 使用默认数据
+                initChart(null);
+            }
+        };
+
+        // 初始化图表
+        let trendChart = null;
+        const initChart = (trendData) => {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            // 销毁旧图表
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            let labels = ['2020', '2021', '2022', '2023', '2024'];
+            let data = [1200, 1500, 1800, 2100, 2400];
+            
+            if (trendData && trendData.length > 0) {
+                labels = trendData.map(item => item.year.toString());
+                data = trendData.map(item => item.count);
+            }
+            
+            trendChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: '数据总量',
+                            data: data,
+                            backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                            borderColor: 'rgb(99, 102, 241)',
+                            borderWidth: 2,
+                            borderRadius: 4,
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: '趋势线',
+                            data: data,
+                            borderColor: 'rgb(251, 146, 60)',
+                            backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: 'rgb(251, 146, 60)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            filter: function(tooltipItem) {
+                                // 只显示柱状图的数据，隐藏折线图的数据
+                                return tooltipItem.datasetIndex === 0;
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} 条`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' 条';
+                                }
+                            }
+                        }
+                    },
+                    onClick: async (event, elements) => {
+                        if (elements.length > 0) {
+                            const router = await import('../utils/router.js');
+                            const elementIndex = elements[0].index;
+                            const year = labels[elementIndex];
+                            // 跳转到查询页面，筛选对应年份
+                            const startDate = `${year}-01-01`;
+                            const endDate = `${year}-12-31`;
+                            router.default.navigate('query', { startDate, endDate });
+                        }
+                    },
+                    onHover: (event, elements) => {
+                        event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                    }
+                }
+            });
+        };
+
+        // 加载数据来源统计
+        let sourceChart = null;
+        const loadSourceStats = async () => {
+            try {
+                const response = await api.get('/data/stats/sources');
+                const legendContainer = document.getElementById('sourceLegend');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    const data = response.data;
+                    
+                    // 准备图表数据
+                    const labels = data.map(item => item.source || '未知来源');
+                    const values = data.map(item => item.count);
+                    
+                    // 颜色配置
+                    const backgroundColors = [
+                        'rgba(99, 102, 241, 0.8)',   // indigo
+                        'rgba(34, 197, 94, 0.8)',    // green
+                        'rgba(168, 85, 247, 0.8)',   // purple
+                        'rgba(251, 146, 60, 0.8)',   // orange
+                        'rgba(6, 182, 212, 0.8)',    // cyan
+                        'rgba(139, 92, 246, 0.8)',   // indigo
+                        'rgba(236, 72, 153, 0.8)',   // pink
+                        'rgba(239, 68, 68, 0.8)',   // red
+                        'rgba(20, 184, 166, 0.8)',   // teal
+                        'rgba(234, 179, 8, 0.8)'     // yellow
+                    ];
+                    
+                    const borderColors = [
+                        'rgb(99, 102, 241)',
+                        'rgb(34, 197, 94)',
+                        'rgb(168, 85, 247)',
+                        'rgb(251, 146, 60)',
+                        'rgb(6, 182, 212)',
+                        'rgb(139, 92, 246)',
+                        'rgb(236, 72, 153)',
+                        'rgb(239, 68, 68)',
+                        'rgb(20, 184, 166)',
+                        'rgb(234, 179, 8)'
+                    ];
+                    
+                    // 销毁旧图表
+                    if (sourceChart) {
+                        sourceChart.destroy();
+                    }
+                    
+                    // 创建饼图
+                    const ctx = document.getElementById('sourceChart').getContext('2d');
+                    sourceChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values,
+                                backgroundColor: backgroundColors.slice(0, data.length),
+                                borderColor: borderColors.slice(0, data.length),
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.parsed || 0;
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                            return `${label}: ${value}条 (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            onClick: async (event, elements) => {
+                                if (elements.length > 0) {
+                                    const router = await import('../utils/router.js');
+                                    const elementIndex = elements[0].index;
+                                    const source = labels[elementIndex];
+                                    // 跳转到查询页面，筛选对应来源
+                                    router.default.navigate('query', { source });
+                                }
+                            },
+                            onHover: (event, elements) => {
+                                event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                            }
+                        }
+                    });
+                    
+                    // 显示图例
+                    const router = await import('../utils/router.js');
+                    legendContainer.innerHTML = data.map((item, index) => {
+                        const color = backgroundColors[index % backgroundColors.length];
+                        const total = values.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
+                        const source = item.source || '未知来源';
+                        const queryPath = router.default.getPath('query', { source });
+                        return `
+                            <div class="chart-legend-item" onclick="window.location.href='${queryPath}'">
+                                <div class="chart-legend-dot" style="background-color: ${color}"></div>
+                                <span class="chart-legend-label" title="${source}">${source}</span>
+                                <span class="chart-legend-value">${item.count}条 (${percentage}%)</span>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    legendContainer.innerHTML = `
+                        <div class="text-center text-gray-500 text-sm">暂无数据</div>
+                    `;
+                }
+            } catch (error) {
+                console.error('加载来源统计失败:', error);
+                document.getElementById('sourceLegend').innerHTML = `
+                    <div class="text-center text-gray-500 text-sm">加载失败，请稍后重试</div>
+                `;
+            }
+        };
+
+        // 页面加载完成后执行
+        loadCategoryStats();
+        loadSourceStats();
+        loadTrendData();
+    </script>
+</body>
+</html>
+

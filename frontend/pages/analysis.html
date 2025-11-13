@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策支持 - 数智湖北</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../public/css/common.css">
+    <link rel="stylesheet" href="../public/css/components.css">
+    <link rel="stylesheet" href="../public/css/footer.css">
+</head>
+<body class="bg-gray-50">
+    <div id="header"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 返回首页按钮 -->
+        <div id="backButtonContainer"></div>
+        
+        <!-- 分析设置 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">决策分析设置</h2>
+            
+            <!-- 数据源选择部分 -->
+            <div id="dataSourceSection" class="mb-6 pb-6 border-b border-gray-200">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择数据文件</label>
+                    <select id="dataFileSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                        <option value="" disabled selected>请选择数据文件</option>
+                    </select>
+                </div>
+                <div id="dataFileInfo" class="hidden p-3 bg-gray-50 rounded-lg text-sm">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-gray-600">数据总量：</span>
+                            <span id="dataTotal" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">地区数量：</span>
+                            <span id="dataAreas" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">指标数量：</span>
+                            <span id="dataIndicators" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">时间范围：</span>
+                            <span id="dataTimeRange" class="font-semibold">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 提问设置部分（默认隐藏） -->
+            <div id="questionSection" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">提问设置</h3>
+                <form id="analysisForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择指标（可选）</label>
+                        <select id="indicatorSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">全部指标（分析所有数据）</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">选择具体指标后，分析将针对该指标进行，更精准</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">选择预设问题</label>
+                        <select id="presetQuestion" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">请选择预设问题（可选）</option>
+                            <option value="trend">分析该数据的整体趋势</option>
+                            <option value="comparison">对比不同地区/指标的数据差异</option>
+                            <option value="anomaly">识别数据中的异常情况</option>
+                            <option value="forecast">预测未来发展趋势</option>
+                            <option value="policy">基于数据提出政策建议</option>
+                            <option value="optimization">优化资源配置建议</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">选择预设问题后，可以在此基础上修改或补充</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">自定义问题</label>
+                        <textarea id="customQuestion" rows="4" placeholder="请输入您的问题，例如：分析湖北省各地区生产总值的发展趋势，并提出发展建议..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">可以输入具体的问题，系统将基于所选数据和指标进行分析</p>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="resetBtn" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">重置</button>
+                        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">开始分析</button>
+                    </div>
+                </form>
+                
+                <!-- 分析说明 -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">分析说明</h3>
+                    <div id="analysisInfo" class="text-sm text-gray-600">
+                        <p class="text-gray-500">系统将基于您选择的数据和问题，使用AI大模型进行深度分析，提供数据洞察和决策建议。分析结果将包括数据趋势、异常识别、对比分析和政策建议等内容。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 分析结果区域 -->
+        <div id="analysisResults" class="hidden space-y-6">
+            <!-- 分析报告 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">决策分析报告</h2>
+                    <button id="exportReportBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                        导出报告
+                    </button>
+                </div>
+                <div id="analysisReport" class="prose max-w-none">
+                    <div class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <p class="mt-4 text-gray-600">正在分析中，请稍候...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 空状态提示 -->
+        <div id="emptyState" class="bg-white rounded-lg shadow-md p-12 text-center">
+            <div class="text-6xl mb-4">💡</div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">开始决策分析</h3>
+            <p class="text-gray-600 mb-6">请先选择数据文件，然后输入您的问题，系统将为您提供专业的决策分析</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script type="module">
+        import api from '../utils/api.js';
+        import auth from '../utils/auth.js';
+        import header from '../components/header.js';
+        import backButton from '../components/backButton.js';
+        import footer from '../components/footer.js';
+        import common from '../utils/common.js';
+
+        // 检查登录状态
+        const router = await import('../utils/router.js');
+        router.default.beforeEnter('analysis');
+        header.initHeader();
+        backButton.initBackButton('backButtonContainer');
+        footer.initFooter();
+
+        let currentDataFile = null;
+        let currentDataStats = null;
+        let currentAnalysisResult = null;
+
+        // 预设问题模板（会根据选中的指标动态调整）
+        const getPresetQuestion = (presetType, indicator) => {
+            const indicatorText = indicator ? `针对"${indicator}"这个指标，` : '';
+            
+            const templates = {
+                'trend': `${indicatorText}请分析该数据的整体发展趋势，包括增长趋势、波动情况、周期性特征等，并说明可能的影响因素。`,
+                'comparison': `${indicatorText}请对比分析不同地区或不同指标之间的数据差异，识别优势区域和需要改进的区域，并分析差异原因。`,
+                'anomaly': `${indicatorText}请识别数据中的异常值或异常模式，分析异常产生的原因，并评估对整体数据的影响。`,
+                'forecast': `${indicatorText}基于历史数据，预测未来发展趋势，并分析可能的风险和机遇。`,
+                'policy': `${indicatorText}基于数据分析结果，提出针对性的政策建议和措施，包括短期和长期建议。`,
+                'optimization': `${indicatorText}分析资源配置情况，提出优化资源配置的建议，以提高整体效益。`
+            };
+            
+            return templates[presetType] || '';
+        };
+
+        // 加载可用的数据文件列表
+        const loadDataFiles = async () => {
+            try {
+                const response = await api.get('/local-data/files');
+                if (response.success && response.data) {
+                    const select = document.getElementById('dataFileSelect');
+                    select.innerHTML = '<option value="" disabled selected>请选择数据文件</option>';
+                    
+                    response.data.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = file.filename;
+                        option.textContent = file.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载数据文件列表失败:', error);
+                common.showMessage('加载数据文件列表失败: ' + error.message, 'error');
+            }
+        };
+
+        // 加载数据文件统计信息
+        const loadDataStatistics = async (filename) => {
+            try {
+                const response = await api.get(`/local-data/${encodeURIComponent(filename)}/statistics`);
+                if (response.success && response.data) {
+                    currentDataStats = response.data;
+                    
+                    // 显示统计信息
+                    document.getElementById('dataTotal').textContent = currentDataStats.total || '-';
+                    document.getElementById('dataAreas').textContent = currentDataStats.areas?.length || '-';
+                    document.getElementById('dataIndicators').textContent = currentDataStats.indicators?.length || '-';
+                    document.getElementById('dataTimeRange').textContent = currentDataStats.timeRange || '-';
+                    
+                    // 更新指标下拉框
+                    updateIndicatorOptions();
+                    
+                    document.getElementById('dataFileInfo').classList.remove('hidden');
+                    document.getElementById('questionSection').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('加载数据统计失败:', error);
+                common.showMessage('加载数据统计失败: ' + error.message, 'error');
+            }
+        };
+
+        // 更新指标下拉框选项
+        const updateIndicatorOptions = () => {
+            if (!currentDataStats) return;
+            
+            const indicatorSelect = document.getElementById('indicatorSelect');
+            indicatorSelect.innerHTML = '<option value="">全部指标（分析所有数据）</option>';
+            
+            if (currentDataStats.indicators && currentDataStats.indicators.length > 0) {
+                currentDataStats.indicators.forEach((indicator) => {
+                    const option = document.createElement('option');
+                    option.value = indicator;
+                    option.textContent = indicator;
+                    indicatorSelect.appendChild(option);
+                });
+            }
+        };
+
+        // 数据文件选择变化事件
+        document.getElementById('dataFileSelect').addEventListener('change', async (e) => {
+            const filename = e.target.value;
+            if (filename) {
+                currentDataFile = filename;
+                await loadDataStatistics(filename);
+            } else {
+                currentDataFile = null;
+                currentDataStats = null;
+                document.getElementById('dataFileInfo').classList.add('hidden');
+                document.getElementById('questionSection').classList.add('hidden');
+                // 清空指标选择
+                document.getElementById('indicatorSelect').innerHTML = '<option value="">全部指标（分析所有数据）</option>';
+            }
+        });
+
+        // 预设问题选择变化事件
+        document.getElementById('presetQuestion').addEventListener('change', (e) => {
+            const presetValue = e.target.value;
+            const customQuestion = document.getElementById('customQuestion');
+            const indicator = document.getElementById('indicatorSelect').value;
+            
+            if (presetValue) {
+                customQuestion.value = getPresetQuestion(presetValue, indicator);
+            } else {
+                customQuestion.value = '';
+            }
+        });
+
+        // 指标选择变化事件（更新预设问题）
+        document.getElementById('indicatorSelect').addEventListener('change', (e) => {
+            const presetValue = document.getElementById('presetQuestion').value;
+            const customQuestion = document.getElementById('customQuestion');
+            
+            // 如果已选择预设问题，更新问题内容
+            if (presetValue) {
+                const indicator = e.target.value;
+                customQuestion.value = getPresetQuestion(presetValue, indicator);
+            }
+        });
+
+        // 执行分析
+        const performAnalysis = async () => {
+            if (!currentDataFile) {
+                common.showMessage('请先选择数据文件', 'error');
+                return;
+            }
+
+            const presetQuestion = document.getElementById('presetQuestion').value;
+            const customQuestion = document.getElementById('customQuestion').value.trim();
+
+            if (!customQuestion) {
+                common.showMessage('请输入问题', 'error');
+                return;
+            }
+
+            try {
+                // 显示分析结果区域
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('analysisResults').classList.remove('hidden');
+                
+                // 显示加载状态
+                const reportDiv = document.getElementById('analysisReport');
+                reportDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <p class="mt-4 text-gray-600">正在分析中，请稍候...</p>
+                    </div>
+                `;
+
+                // 获取选中的指标
+                const selectedIndicator = document.getElementById('indicatorSelect').value;
+
+                // 调用分析接口
+                const response = await api.post('/analysis/analyze', {
+                    filename: currentDataFile,
+                    indicator: selectedIndicator || null,
+                    question: customQuestion,
+                    presetType: presetQuestion || null
+                });
+
+                if (response.success && response.data) {
+                    currentAnalysisResult = response.data;
+                    renderAnalysisResult(response.data);
+                } else {
+                    throw new Error(response.message || '分析失败');
+                }
+            } catch (error) {
+                console.error('分析失败:', error);
+                common.showMessage('分析失败: ' + (error.message || '未知错误'), 'error');
+                const reportDiv = document.getElementById('analysisReport');
+                reportDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-4">❌</div>
+                        <p class="text-lg font-semibold text-gray-800 mb-2">分析失败</p>
+                        <p class="text-gray-600">${error.message || '未知错误'}</p>
+                    </div>
+                `;
+            }
+        };
+
+        // 渲染分析结果
+        const renderAnalysisResult = (data) => {
+            const reportDiv = document.getElementById('analysisReport');
+            
+            if (!data || !data.analysis) {
+                reportDiv.innerHTML = '<p class="text-gray-500">暂无分析结果</p>';
+                return;
+            }
+
+            // 将分析结果格式化为HTML
+            let html = '';
+            
+            // 如果有标题
+            if (data.title) {
+                html += `<h2 class="text-2xl font-bold text-gray-800 mb-4">${data.title}</h2>`;
+            }
+            
+            // 分析内容（支持Markdown格式）
+            const analysisText = data.analysis || '';
+            
+            // 简单的Markdown转HTML（基础支持）
+            let formattedText = analysisText
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/### (.*?)(<br>|$)/g, '<h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">$1</h3>')
+                .replace(/## (.*?)(<br>|$)/g, '<h2 class="text-2xl font-bold text-gray-800 mt-6 mb-4">$1</h2>')
+                .replace(/# (.*?)(<br>|$)/g, '<h1 class="text-3xl font-bold text-gray-800 mt-6 mb-4">$1</h1>');
+            
+            html += `<div class="text-gray-700 leading-relaxed"><p>${formattedText}</p></div>`;
+            
+            // 如果有建议
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += '<div class="mt-8 pt-6 border-t border-gray-200">';
+                html += '<h3 class="text-xl font-semibold text-gray-800 mb-4">决策建议</h3>';
+                html += '<ul class="space-y-3">';
+                data.recommendations.forEach((rec, index) => {
+                    html += `<li class="flex items-start">
+                        <span class="flex-shrink-0 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3 mt-1">${index + 1}</span>
+                        <span class="text-gray-700">${rec}</span>
+                    </li>`;
+                });
+                html += '</ul></div>';
+            }
+            
+            // 如果有数据摘要
+            if (data.summary) {
+                html += '<div class="mt-8 pt-6 border-t border-gray-200">';
+                html += '<h3 class="text-xl font-semibold text-gray-800 mb-4">数据摘要</h3>';
+                html += `<div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">${data.summary}</div>`;
+                html += '</div>';
+            }
+            
+            reportDiv.innerHTML = html;
+        };
+
+        // 导出报告
+        document.getElementById('exportReportBtn')?.addEventListener('click', () => {
+            if (!currentAnalysisResult) {
+                common.showMessage('没有可导出的分析结果', 'error');
+                return;
+            }
+            
+            // 生成报告内容
+            let content = '决策分析报告\n';
+            content += '='.repeat(50) + '\n\n';
+            content += `生成时间: ${new Date().toLocaleString('zh-CN')}\n`;
+            content += `数据文件: ${currentDataFile}\n\n`;
+            
+            if (currentAnalysisResult.title) {
+                content += `${currentAnalysisResult.title}\n`;
+                content += '-'.repeat(50) + '\n\n';
+            }
+            
+            if (currentAnalysisResult.analysis) {
+                content += currentAnalysisResult.analysis + '\n\n';
+            }
+            
+            if (currentAnalysisResult.recommendations && currentAnalysisResult.recommendations.length > 0) {
+                content += '决策建议\n';
+                content += '-'.repeat(50) + '\n';
+                currentAnalysisResult.recommendations.forEach((rec, index) => {
+                    content += `${index + 1}. ${rec}\n`;
+                });
+                content += '\n';
+            }
+            
+            if (currentAnalysisResult.summary) {
+                content += '数据摘要\n';
+                content += '-'.repeat(50) + '\n';
+                content += currentAnalysisResult.summary + '\n';
+            }
+            
+            // 创建并下载文件
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `决策分析报告_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            common.showMessage('报告导出成功', 'success');
+        });
+
+        // 表单提交
+        document.getElementById('analysisForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            performAnalysis();
+        });
+
+        // 重置按钮
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.getElementById('indicatorSelect').value = '';
+            document.getElementById('presetQuestion').value = '';
+            document.getElementById('customQuestion').value = '';
+            document.getElementById('analysisResults').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+            currentAnalysisResult = null;
+        });
+
+        // 页面加载时初始化
+        loadDataFiles();
+    </script>
+</body>
+</html>

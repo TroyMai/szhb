@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据预测 - 数智湖北</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/common.css">
+    <link rel="stylesheet" href="../public/css/components.css">
+    <link rel="stylesheet" href="../public/css/footer.css">
+</head>
+<body class="bg-gray-50">
+    <div id="header"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 返回首页按钮 -->
+        <div id="backButtonContainer"></div>
+        
+        <!-- 预测设置 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6">预测设置</h2>
+            
+            <!-- 数据源选择部分 -->
+            <div id="dataSourceSection" class="mb-6 pb-6 border-b border-gray-200">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">选择数据文件</label>
+                    <select id="dataFileSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                        <option value="" disabled selected>请选择数据文件</option>
+                    </select>
+                </div>
+                <div id="dataFileInfo" class="hidden p-3 bg-gray-50 rounded-lg text-sm">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-gray-600">数据总量：</span>
+                            <span id="dataTotal" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">地区数量：</span>
+                            <span id="dataAreas" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">指标数量：</span>
+                            <span id="dataIndicators" class="font-semibold">-</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">时间范围：</span>
+                            <span id="dataTimeRange" class="font-semibold">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 预测参数设置部分（默认隐藏） -->
+            <div id="predictionParamsSection" class="hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">预测参数设置</h3>
+            <form id="predictionForm">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                    <div class="min-w-0 md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">地区</label>
+                        <select id="region" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                            <!-- 动态生成选项 -->
+                        </select>
+                    </div>
+                    <div class="min-w-0 md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">指标</label>
+                        <select id="indicator" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required>
+                            <!-- 动态生成选项 -->
+                        </select>
+                    </div>
+                    <div class="min-w-0 md:col-span-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2" id="timeRangeLabel">历史数据区间</label>
+                        <div id="timeRangeInputs" class="flex space-x-2">
+                            <!-- 动态生成输入框 -->
+                        </div>
+                        <div id="timeRangeError" class="mt-1 text-sm text-red-600 hidden"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2" id="periodLabel">预测周期</label>
+                        <select id="period" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <!-- 动态生成选项 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">预测模型</label>
+                        <select id="model" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="linear">线性回归</option>
+                            <option value="exponential">指数平滑</option>
+                            <option value="movingAverage">移动平均</option>
+                            <option value="polynomial">多项式回归</option>
+                            <option value="arima">时间序列（ARIMA）</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="resetBtn" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">重置</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">开始预测</button>
+                </div>
+            </form>
+            
+            <!-- 算法说明 -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">算法说明</h3>
+                <div id="algorithmInfo" class="text-sm text-gray-600">
+                    <p class="text-gray-500">请先选择预测模型并完成预测，算法说明将在此显示。</p>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">预测趋势图</h3>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">预测统计信息</h3>
+                <div id="predictionStats" class="space-y-4"></div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">详细数据</h3>
+            </div>
+            <div id="predictionTable" class="overflow-x-auto"></div>
+            <div id="predictionTablePagination"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer"></div>
+
+    <script type="module">
+        import api from '../utils/api.js';
+        import auth from '../utils/auth.js';
+        import header from '../components/header.js';
+        import backButton from '../components/backButton.js';
+        import footer from '../components/footer.js';
+        import common from '../utils/common.js';
+        import pagination from '../components/pagination.js';
+        
+        // 检查登录状态（使用路由守卫）
+        const router = await import('../utils/router.js');
+        router.default.beforeEnter('prediction');
+        header.initHeader();
+        backButton.initBackButton('backButtonContainer');
+        footer.initFooter();
+        
+        // 当前选中的数据文件
+        let currentDataFile = null;
+        let currentDataStats = null;
+        let predictionChart = null;
+        let currentTimeFormat = 'year'; // 'year' 或 'yearmonth'
+        let currentTimeInterval = 1; // 时间间隔（年份格式为年数，年月格式为月数）
+
+        // 初始化图表
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        predictionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: []
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 加载可用的数据文件列表
+        const loadDataFiles = async () => {
+            try {
+                const response = await api.get('/local-data/files');
+                if (response.success && response.data) {
+                    const select = document.getElementById('dataFileSelect');
+                    // 保留占位符选项，只添加数据文件选项
+                    const placeholder = select.querySelector('option[value=""]');
+                    if (placeholder) {
+                        placeholder.textContent = '请选择数据文件';
+                    } else {
+                        select.innerHTML = '<option value="" disabled selected>请选择数据文件</option>';
+                    }
+                    
+                    response.data.forEach(file => {
+                        const option = document.createElement('option');
+                        option.value = file.filename;
+                        option.textContent = file.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载数据文件列表失败:', error);
+                common.showMessage('加载数据文件列表失败: ' + error.message, 'error');
+            }
+        };
+
+        // 加载数据文件统计信息
+        const loadDataStatistics = async (filename) => {
+            try {
+                const response = await api.get(`/local-data/${encodeURIComponent(filename)}/statistics`);
+                if (response.success && response.data) {
+                    currentDataStats = response.data;
+                    currentTimeFormat = currentDataStats.timeFormat || 'year';
+                    
+                    // 显示统计信息
+                    document.getElementById('dataTotal').textContent = currentDataStats.total || '-';
+                    document.getElementById('dataAreas').textContent = currentDataStats.areas?.length || '-';
+                    document.getElementById('dataIndicators').textContent = currentDataStats.indicators?.length || '-';
+                    
+                    // 显示时间范围（根据格式自适应）
+                    document.getElementById('dataTimeRange').textContent = currentDataStats.timeRange || '-';
+                    
+                    document.getElementById('dataFileInfo').classList.remove('hidden');
+                    
+                    // 显示数据源选择部分的分割线
+                    document.getElementById('dataSourceSection').classList.remove('hidden');
+                    document.getElementById('dataSourceSection').classList.add('mb-6', 'pb-6', 'border-b', 'border-gray-200');
+                    
+                    // 显示预测参数设置部分
+                    document.getElementById('predictionParamsSection').classList.remove('hidden');
+                    
+                    // 更新地区和指标下拉框
+                    updateRegionAndIndicatorOptions();
+                    
+                    // 更新时间区间输入框
+                    updateTimeRangeInputs();
+                    
+                    // 更新预测周期选项
+                    updatePeriodOptions();
+                }
+            } catch (error) {
+                console.error('加载数据统计失败:', error);
+                common.showMessage('加载数据统计失败: ' + error.message, 'error');
+            }
+        };
+
+        /**
+         * 检测并更新时间间隔（在参数变化时调用）
+         * @param {boolean} preserveSelection - 是否保留预测数选择（默认：false）
+         */
+        const detectAndUpdateInterval = async (preserveSelection = false) => {
+            if (!currentDataFile) return;
+            
+            const region = document.getElementById('region')?.value;
+            const indicator = document.getElementById('indicator')?.value;
+            
+            // 如果地区或指标未选择，使用默认值
+            if (!region || !indicator) {
+                // 重置为默认间隔
+                currentTimeInterval = 1;
+                updatePeriodOptions(1, preserveSelection);
+                return;
+            }
+            
+            // 获取时间范围
+            let startTime = null, endTime = null;
+            if (currentTimeFormat === 'yearmonth') {
+                const startYear = document.getElementById('startYear')?.value;
+                const startMonth = document.getElementById('startMonth')?.value;
+                const endYear = document.getElementById('endYear')?.value;
+                const endMonth = document.getElementById('endMonth')?.value;
+                
+                if (startYear && startMonth && endYear && endMonth) {
+                    startTime = parseInt(startYear) * 100 + parseInt(startMonth);
+                    endTime = parseInt(endYear) * 100 + parseInt(endMonth);
+                }
+            } else {
+                const startYear = document.getElementById('startTime')?.value;
+                const endYear = document.getElementById('endTime')?.value;
+                
+                if (startYear && endYear) {
+                    startTime = parseInt(startYear);
+                    endTime = parseInt(endYear);
+                }
+            }
+            
+            // 尝试获取少量数据来检测间隔
+            try {
+                const response = await api.get(`/local-data/${encodeURIComponent(currentDataFile)}/timeseries`, {
+                    area: region,
+                    indicator: indicator,
+                    startTime: startTime,
+                    endTime: endTime
+                });
+                
+                if (response.success && response.data && response.data.length >= 2) {
+                    const timeSeriesData = response.data;
+                    const detectedInterval = detectTimeInterval(timeSeriesData);
+                    const intervalChanged = currentTimeInterval !== detectedInterval;
+                    currentTimeInterval = detectedInterval;
+                    // 如果间隔没有变化，且要求保留选择，则保留；否则不保留
+                    updatePeriodOptions(detectedInterval, preserveSelection && !intervalChanged);
+                } else {
+                    // 数据不足，使用默认间隔
+                    const intervalChanged = currentTimeInterval !== 1;
+                    currentTimeInterval = 1;
+                    updatePeriodOptions(1, preserveSelection && !intervalChanged);
+                }
+            } catch (error) {
+                console.error('预检测时间间隔失败:', error);
+                // 失败时使用默认间隔
+                const intervalChanged = currentTimeInterval !== 1;
+                currentTimeInterval = 1;
+                updatePeriodOptions(1, preserveSelection && !intervalChanged);
+            }
+        };
+
+        // 更新地区和指标下拉框
+        const updateRegionAndIndicatorOptions = () => {
+            if (!currentDataStats) return;
+            
+            // 更新地区下拉框
+            const regionSelect = document.getElementById('region');
+            regionSelect.innerHTML = '';
+            if (currentDataStats.areas && currentDataStats.areas.length > 0) {
+                currentDataStats.areas.forEach((area, index) => {
+                    const option = document.createElement('option');
+                    option.value = area;
+                    option.textContent = area;
+                    // 第一个选项设为默认选中
+                    if (index === 0) {
+                        option.selected = true;
+                    }
+                    regionSelect.appendChild(option);
+                });
+            }
+            
+            // 更新指标下拉框
+            const indicatorSelect = document.getElementById('indicator');
+            indicatorSelect.innerHTML = '';
+            if (currentDataStats.indicators && currentDataStats.indicators.length > 0) {
+                currentDataStats.indicators.forEach((indicator, index) => {
+                    const option = document.createElement('option');
+                    option.value = indicator;
+                    option.textContent = indicator;
+                    // 第一个选项设为默认选中
+                    if (index === 0) {
+                        option.selected = true;
+                    }
+                    indicatorSelect.appendChild(option);
+                });
+            }
+            
+            // 选择后立即检测间隔
+            setTimeout(() => {
+                detectAndUpdateInterval();
+            }, 100);
+        };
+
+        // 格式化年月显示（202401 -> 2024年01月）
+        const formatYearMonth = (ym) => {
+            const str = String(ym);
+            if (str.length === 6) {
+                const year = str.substring(0, 4);
+                const month = str.substring(4, 6);
+                return `${year}年${parseInt(month)}月`;
+            }
+            return str;
+        };
+
+        /**
+         * 检测历史数据的时间间隔
+         * @param {Array} timeSeriesData - 时间序列数据
+         * @returns {number} 时间间隔（年份格式为年数，年月格式为月数）
+         */
+        const detectTimeInterval = (timeSeriesData) => {
+            if (!timeSeriesData || timeSeriesData.length < 2) {
+                return 1; // 默认间隔
+            }
+            
+            // 计算相邻数据点的时间差（转换为月数）
+            const intervals = [];
+            for (let i = 1; i < timeSeriesData.length; i++) {
+                const time1 = timeSeriesData[i - 1].time;
+                const time2 = timeSeriesData[i].time;
+                
+                if (currentTimeFormat === 'yearmonth') {
+                    // 年月格式（6位数字，如202403）
+                    const year1 = Math.floor(time1 / 100);
+                    const month1 = time1 % 100;
+                    const year2 = Math.floor(time2 / 100);
+                    const month2 = time2 % 100;
+                    
+                    // 计算月份差
+                    const monthDiff = (year2 - year1) * 12 + (month2 - month1);
+                    if (monthDiff > 0) {
+                        intervals.push(monthDiff);
+                    }
+                } else {
+                    // 年份格式
+                    const yearDiff = time2 - time1;
+                    if (yearDiff > 0) {
+                        intervals.push(yearDiff);
+                    }
+                }
+            }
+            
+            if (intervals.length === 0) {
+                return 1;
+            }
+            
+            // 找到最常见的间隔（众数）
+            const intervalCounts = {};
+            intervals.forEach(interval => {
+                intervalCounts[interval] = (intervalCounts[interval] || 0) + 1;
+            });
+            
+            let mostCommonInterval = 1;
+            let maxCount = 0;
+            Object.keys(intervalCounts).forEach(interval => {
+                if (intervalCounts[interval] > maxCount) {
+                    maxCount = intervalCounts[interval];
+                    mostCommonInterval = parseInt(interval);
+                }
+            });
+            
+            return mostCommonInterval;
+        };
+
+        /**
+         * 获取间隔单位文字（用于标签显示）
+         * @param {number} interval - 时间间隔（月份格式为月数，年份格式为年数）
+         * @returns {string} 单位文字
+         */
+        const getIntervalUnit = (interval) => {
+            if (currentTimeFormat === 'yearmonth') {
+                if (interval === 1) return '个月';
+                if (interval === 3) return '个季度';
+                if (interval === 6) return '个半年';
+                if (interval === 12) return '年';
+                return `${interval}个月`; // 其他间隔直接显示月数，不显示"个周期"
+            } else {
+                if (interval === 1) return '年';
+                return `${interval}年`; // 其他间隔直接显示年数，不显示"个周期"
+            }
+        };
+
+        // 更新预测周期选项（根据时间格式和间隔）
+        const updatePeriodOptions = (interval = null, preserveSelection = false) => {
+            if (!currentDataStats) return;
+            
+            const periodSelect = document.getElementById('period');
+            const periodLabel = document.getElementById('periodLabel');
+            
+            if (!periodSelect) return;
+            
+            // 使用检测到的间隔，如果没有则使用默认值1
+            const detectedInterval = interval || currentTimeInterval || 1;
+            
+            // 保存当前选中的值（如果要求保留选择）
+            let previousValue = null;
+            if (preserveSelection && periodSelect.value) {
+                previousValue = periodSelect.value;
+            }
+            
+            // 清空现有选项
+            periodSelect.innerHTML = '';
+            
+            // 根据间隔设置标签文字
+            const unit = getIntervalUnit(detectedInterval);
+            periodLabel.textContent = `预测数（${unit}）`;
+            
+            if (currentTimeFormat === 'yearmonth') {
+                // 年月格式：根据间隔生成选项
+                let baseOptions, defaultValue;
+                if (detectedInterval === 1) {
+                    // 月度数据
+                    baseOptions = [1, 3, 6, 12, 24];
+                    defaultValue = 1; // 默认选择第一个选项
+                } else if (detectedInterval === 3) {
+                    // 季度数据
+                    baseOptions = [1, 2, 4, 8];
+                    defaultValue = 1; // 默认选择第一个选项
+                } else if (detectedInterval === 6) {
+                    // 半年数据
+                    baseOptions = [1, 2, 4];
+                    defaultValue = 1; // 默认选择第一个选项
+                } else {
+                    // 其他间隔
+                    baseOptions = [1, 3, 6, 12];
+                    defaultValue = 1; // 默认选择第一个选项
+                }
+                
+                const options = baseOptions.map(num => {
+                    let text;
+                    if (detectedInterval === 1) {
+                        text = `未来${num}个月`;
+                    } else if (detectedInterval === 3) {
+                        text = `未来${num}个季度`;
+                    } else if (detectedInterval === 6) {
+                        text = `未来${num}个半年`;
+                    } else if (detectedInterval === 12) {
+                        text = `未来${num}年`;
+                    } else {
+                        // 其他间隔：直接显示总月数，不显示"个周期"
+                        const totalMonths = num * detectedInterval;
+                        text = `未来${totalMonths}个月`;
+                    }
+                    return { value: num, text };
+                });
+                
+                options.forEach(option => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.text;
+                    periodSelect.appendChild(opt);
+                });
+                
+                // 如果之前有选中值且在新选项中存在，则恢复它；否则使用默认值
+                if (preserveSelection && previousValue && baseOptions.includes(parseInt(previousValue))) {
+                    periodSelect.value = previousValue;
+                } else {
+                    periodSelect.value = defaultValue.toString();
+                }
+            } else {
+                // 年份格式
+                let baseOptions, defaultValue;
+                if (detectedInterval === 1) {
+                    baseOptions = [1, 3, 5];
+                    defaultValue = 1;
+                } else {
+                    baseOptions = [1, 2, 3];
+                    defaultValue = 1;
+                }
+                
+                const options = baseOptions.map(num => {
+                    let text;
+                    if (detectedInterval === 1) {
+                        text = `未来${num}年`;
+                    } else {
+                        // 其他间隔：直接显示总年数，不显示"个周期"
+                        const totalYears = num * detectedInterval;
+                        text = `未来${totalYears}年`;
+                    }
+                    return { value: num, text };
+                });
+                
+                options.forEach(option => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.text;
+                    periodSelect.appendChild(opt);
+                });
+                
+                // 如果之前有选中值且在新选项中存在，则恢复它；否则使用默认值
+                if (preserveSelection && previousValue && baseOptions.includes(parseInt(previousValue))) {
+                    periodSelect.value = previousValue;
+                } else {
+                    periodSelect.value = defaultValue.toString();
+                }
+            }
+        };
+
+        // 更新时间区间输入框（根据时间格式自适应）
+        const updateTimeRangeInputs = () => {
+            if (!currentDataStats || !currentDataStats.timeValues || currentDataStats.timeValues.length === 0) {
+                return;
+            }
+
+            const timeRangeInputs = document.getElementById('timeRangeInputs');
+            const timeRangeLabel = document.getElementById('timeRangeLabel');
+            const timeRangeError = document.getElementById('timeRangeError');
+            
+            // 清除错误提示
+            timeRangeError.classList.add('hidden');
+            
+            const minTime = currentDataStats.dateRange.min;
+            const maxTime = currentDataStats.dateRange.max;
+
+            if (currentTimeFormat === 'yearmonth') {
+                // 年月格式：使用年份和月份下拉选择器
+                timeRangeLabel.textContent = '历史数据区间（年月）';
+                
+                // 解析时间范围，获取年份和月份范围
+                const parseYearMonth = (ym) => {
+                    const str = String(ym);
+                    if (str.length === 6) {
+                        return {
+                            year: parseInt(str.substring(0, 4)),
+                            month: parseInt(str.substring(4, 6))
+                        };
+                    }
+                    return { year: parseInt(str), month: 1 };
+                };
+                
+                const minYM = parseYearMonth(minTime);
+                const maxYM = parseYearMonth(maxTime);
+                
+                // 生成年份选项
+                const yearOptions = [];
+                for (let year = minYM.year; year <= maxYM.year; year++) {
+                    yearOptions.push(year);
+                }
+                
+                // 生成月份选项
+                const monthOptions = [];
+                for (let month = 1; month <= 12; month++) {
+                    monthOptions.push(month);
+                }
+                
+                // 创建年月选择器
+                timeRangeInputs.innerHTML = `
+                    <div class="flex-1 min-w-0 flex space-x-2">
+                        <select id="startYear" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </select>
+                        <select id="startMonth" class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </select>
+                    </div>
+                    <span class="self-center text-gray-500 whitespace-nowrap px-2">至</span>
+                    <div class="flex-1 min-w-0 flex space-x-2">
+                        <select id="endYear" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </select>
+                        <select id="endMonth" class="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        </select>
+                    </div>
+                `;
+                
+                // 填充年份选项
+                const startYearSelect = document.getElementById('startYear');
+                const endYearSelect = document.getElementById('endYear');
+                yearOptions.forEach(year => {
+                    const option1 = document.createElement('option');
+                    option1.value = year;
+                    option1.textContent = year;
+                    startYearSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = year;
+                    option2.textContent = year;
+                    endYearSelect.appendChild(option2);
+                });
+                
+                // 填充月份选项
+                const startMonthSelect = document.getElementById('startMonth');
+                const endMonthSelect = document.getElementById('endMonth');
+                monthOptions.forEach(month => {
+                    const monthText = String(month).padStart(2, '0'); // 格式化为两位数字，如 "03"
+                    const option1 = document.createElement('option');
+                    option1.value = month;
+                    option1.textContent = monthText;
+                    startMonthSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = month;
+                    option2.textContent = monthText;
+                    endMonthSelect.appendChild(option2);
+                });
+                
+                // 设置默认值
+                startYearSelect.value = minYM.year;
+                startMonthSelect.value = minYM.month;
+                endYearSelect.value = maxYM.year;
+                endMonthSelect.value = maxYM.month;
+                
+                // 验证年月范围（先定义，后使用）
+                const validateYearMonthRange = () => {
+                    const startYear = parseInt(startYearSelect.value);
+                    const startMonth = parseInt(startMonthSelect.value);
+                    const endYear = parseInt(endYearSelect.value);
+                    const endMonth = parseInt(endMonthSelect.value);
+                    
+                    if (!startYear || !startMonth || !endYear || !endMonth) {
+                        timeRangeError.classList.add('hidden');
+                        return false;
+                    }
+                    
+                    const startYM = startYear * 100 + startMonth;
+                    const endYM = endYear * 100 + endMonth;
+                    
+                    if (startYM < minTime || startYM > maxTime) {
+                        timeRangeError.textContent = `起始时间超出范围（${formatYearMonth(minTime)} - ${formatYearMonth(maxTime)}）`;
+                        timeRangeError.classList.remove('hidden');
+                        return false;
+                    }
+                    if (endYM < minTime || endYM > maxTime) {
+                        timeRangeError.textContent = `结束时间超出范围（${formatYearMonth(minTime)} - ${formatYearMonth(maxTime)}）`;
+                        timeRangeError.classList.remove('hidden');
+                        return false;
+                    }
+                    if (startYM > endYM) {
+                        timeRangeError.textContent = '起始时间不能大于结束时间';
+                        timeRangeError.classList.remove('hidden');
+                        return false;
+                    }
+                    
+                    timeRangeError.classList.add('hidden');
+                    return true;
+                };
+                
+                // 年份变化时，更新月份可选范围
+                const updateMonthOptions = (yearSelect, monthSelect, isStart) => {
+                    const selectedYear = parseInt(yearSelect.value);
+                    if (!selectedYear) {
+                        // 如果年份未选择，清空月份选项
+                        monthSelect.innerHTML = '';
+                        return;
+                    }
+                    
+                    const currentMonth = parseInt(monthSelect.value) || 1;
+                    
+                    // 清空并重新填充月份选项
+                    monthSelect.innerHTML = '';
+                    
+                    let minMonth = 1;
+                    let maxMonth = 12;
+                    
+                    if (isStart && selectedYear === minYM.year) {
+                        minMonth = minYM.month;
+                    }
+                    if (!isStart && selectedYear === maxYM.year) {
+                        maxMonth = maxYM.month;
+                    }
+                    
+                    for (let month = minMonth; month <= maxMonth; month++) {
+                        const option = document.createElement('option');
+                        option.value = month;
+                        option.textContent = String(month).padStart(2, '0'); // 格式化为两位数字，如 "03"
+                        monthSelect.appendChild(option);
+                    }
+                    
+                    // 如果当前选择的月份不在新范围内，设置为最小值
+                    if (currentMonth < minMonth || currentMonth > maxMonth) {
+                        monthSelect.value = minMonth;
+                    } else {
+                        monthSelect.value = currentMonth;
+                    }
+                };
+                
+                startYearSelect.addEventListener('change', () => {
+                    updateMonthOptions(startYearSelect, startMonthSelect, true);
+                    validateYearMonthRange();
+                });
+                endYearSelect.addEventListener('change', () => {
+                    detectAndUpdateInterval(true); // 传递true以保留预测数选择
+                    updateMonthOptions(endYearSelect, endMonthSelect, false);
+                    validateYearMonthRange();
+                });
+                startMonthSelect.addEventListener('change', validateYearMonthRange);
+                endMonthSelect.addEventListener('change', validateYearMonthRange);
+                
+                // 初始化月份选项范围
+                updateMonthOptions(startYearSelect, startMonthSelect, true);
+                updateMonthOptions(endYearSelect, endMonthSelect, false);
+                
+            } else {
+                // 年份格式：使用年份下拉选择器
+                timeRangeLabel.textContent = '历史数据区间（年份）';
+                
+                // 生成年份选项
+                const yearOptions = [];
+                for (let year = minTime; year <= maxTime; year++) {
+                    yearOptions.push(year);
+                }
+                
+                // 创建年份选择器
+                timeRangeInputs.innerHTML = `
+                    <select id="startTime" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </select>
+                    <span class="self-center text-gray-500 whitespace-nowrap px-2">至</span>
+                    <select id="endTime" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    </select>
+                `;
+                
+                // 填充年份选项
+                const startYearSelect = document.getElementById('startTime');
+                const endYearSelect = document.getElementById('endTime');
+                yearOptions.forEach(year => {
+                    const option1 = document.createElement('option');
+                    option1.value = year;
+                    option1.textContent = year;
+                    startYearSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = year;
+                    option2.textContent = year;
+                    endYearSelect.appendChild(option2);
+                });
+                
+                // 设置默认值
+                if (minTime && maxTime) {
+                    startYearSelect.value = minTime;
+                    endYearSelect.value = maxTime;
+                }
+                
+                // 添加验证
+                const validateTimeRange = () => {
+                    const start = parseInt(startYearSelect.value);
+                    const end = parseInt(endYearSelect.value);
+                    
+                    if (start && end) {
+                        if (start < minTime || start > maxTime) {
+                            timeRangeError.textContent = `起始年份超出范围（${minTime} - ${maxTime}）`;
+                            timeRangeError.classList.remove('hidden');
+                            return false;
+                        }
+                        if (end < minTime || end > maxTime) {
+                            timeRangeError.textContent = `结束年份超出范围（${minTime} - ${maxTime}）`;
+                            timeRangeError.classList.remove('hidden');
+                            return false;
+                        }
+                        if (start > end) {
+                            timeRangeError.textContent = '起始年份不能大于结束年份';
+                            timeRangeError.classList.remove('hidden');
+                            return false;
+                        }
+                    }
+                    timeRangeError.classList.add('hidden');
+                    return true;
+                };
+                
+                startYearSelect.addEventListener('change', () => {
+                    validateTimeRange();
+                    detectAndUpdateInterval(true); // 传递true以保留预测数选择
+                });
+                endYearSelect.addEventListener('change', () => {
+                    validateTimeRange();
+                    detectAndUpdateInterval(true); // 传递true以保留预测数选择
+                });
+            }
+        };
+
+        // 数据文件选择变化事件
+        document.getElementById('dataFileSelect').addEventListener('change', async (e) => {
+            const filename = e.target.value;
+            if (filename) {
+                currentDataFile = filename;
+                await loadDataStatistics(filename);
+            } else {
+                currentDataFile = null;
+                currentDataStats = null;
+                currentTimeFormat = 'year';
+                document.getElementById('dataFileInfo').classList.add('hidden');
+                
+                // 隐藏数据源选择部分的分割线
+                document.getElementById('dataSourceSection').classList.remove('mb-6', 'pb-6', 'border-b', 'border-gray-200');
+                
+                // 隐藏预测参数设置部分
+                document.getElementById('predictionParamsSection').classList.add('hidden');
+                
+                // 重置地区和指标下拉框（清空，等待重新加载数据文件时填充）
+                document.getElementById('region').innerHTML = '';
+                document.getElementById('indicator').innerHTML = '';
+                
+                // 清空时间区间输入
+                document.getElementById('timeRangeInputs').innerHTML = '<!-- 动态生成输入框 -->';
+                document.getElementById('timeRangeError').classList.add('hidden');
+            }
+        });
+
+        // 重置按钮
+        document.getElementById('resetBtn')?.addEventListener('click', async () => {
+            if (currentDataStats) {
+                // 重置地区和指标下拉框（恢复到第一个选项）
+                const regionSelect = document.getElementById('region');
+                const indicatorSelect = document.getElementById('indicator');
+                
+                if (regionSelect && regionSelect.options.length > 0) {
+                    regionSelect.selectedIndex = 0;
+                }
+                
+                if (indicatorSelect && indicatorSelect.options.length > 0) {
+                    indicatorSelect.selectedIndex = 0;
+                }
+                
+                // 重置时间区间（重新生成输入框，恢复默认值）
+                updateTimeRangeInputs();
+                
+                // 等待DOM更新后，重新检测时间间隔并更新预测周期选项
+                setTimeout(async () => {
+                    await detectAndUpdateInterval();
+                    
+                    // 重置预测模型到默认值
+                    const modelSelect = document.getElementById('model');
+                    if (modelSelect) {
+                        modelSelect.value = 'linear';
+                    }
+                }, 100);
+                
+                // 清除错误提示
+                const timeRangeError = document.getElementById('timeRangeError');
+                if (timeRangeError) {
+                    timeRangeError.classList.add('hidden');
+                }
+                
+                // 清除预测结果（如果有）
+                if (predictionChart) {
+                    predictionChart.data.labels = [];
+                    predictionChart.data.datasets = [];
+                    predictionChart.update();
+                }
+                
+                const predictionStats = document.getElementById('predictionStats');
+                if (predictionStats) {
+                    predictionStats.innerHTML = '';
+                }
+                
+                const predictionTable = document.getElementById('predictionTable');
+                if (predictionTable) {
+                    predictionTable.innerHTML = '';
+                }
+                
+                // 清除分页
+                const paginationContainer = document.getElementById('predictionTablePagination');
+                if (paginationContainer) {
+                    paginationContainer.innerHTML = '';
+                }
+                
+                common.showMessage('已重置所有参数', 'success');
+            }
+        });
+
+        // 更新算法说明
+        const updateAlgorithmInfo = (model) => {
+            const algorithmInfo = document.getElementById('algorithmInfo');
+            if (!algorithmInfo) return;
+            
+            const algorithmDescriptions = {
+                'linear': '线性回归是一种简单而有效的预测方法，通过使用最小二乘法拟合一条直线（y = ax + b）来预测未来趋势。该方法计算简单、易于理解，适合有明显线性上升或下降趋势的数据，如持续增长或下降的指标。但对于非线性趋势的数据预测效果较差，且无法捕捉季节性变化。',
+                'exponential': '指数平滑法通过加权平均历史数据来预测未来，越近的数据权重越大。系统会根据数据特征自动选择单指数、双指数或三指数平滑（单指数适合平稳数据，双指数适合有趋势的数据，三指数适合有趋势和季节性的数据）。该方法能够自动适应数据特征，对近期数据更敏感，适合短期预测，但对于长期预测可能不够准确，且参数选择对结果影响较大。适合有明显趋势或季节性的时间序列数据，如月度、季度数据。',
+                'movingAverage': '移动平均法通过计算历史数据的平均值来预测未来，可以平滑数据波动。系统会根据数据特征自动选择简单移动平均、加权移动平均或指数移动平均（简单移动平均对所有数据点赋予相同权重，加权移动平均对近期数据赋予更大权重）。该方法能够平滑数据波动，减少异常值的影响，计算简单，但对趋势变化的响应较慢，可能滞后于实际数据变化。适合波动较大但整体趋势稳定的数据，如股票价格、销售数据等。',
+                'polynomial': '多项式回归通过使用最小二乘法拟合2次或3次多项式曲线来预测未来，可以捕捉非线性趋势。系统会自动选择最佳多项式次数。该方法能够捕捉非线性趋势，比线性回归更灵活，适合复杂的数据模式，但对于长期预测可能产生不合理的极值，过拟合风险较高。适合有明显非线性趋势的数据，如先上升后下降或先下降后上升的数据。',
+                'arima': 'ARIMA（自回归积分滑动平均）模型是经典的时间序列预测方法，通过自回归（AR）、差分（I）和移动平均（MA）三个部分来建模时间序列，能够捕捉数据的自相关性和趋势。系统会自动选择最佳参数（p, d, q）。该方法理论基础扎实，能够处理非平稳时间序列，适合复杂的时间序列数据，但需要足够的历史数据（至少20个数据点），计算复杂度较高，参数选择复杂。适合有复杂时间依赖关系的数据，如经济指标、气象数据等。'
+            };
+            
+            const description = algorithmDescriptions[model] || algorithmDescriptions['linear'];
+            
+            algorithmInfo.innerHTML = `<p>${description}</p>`;
+        };
+
+        // 初始化：加载数据文件列表
+        loadDataFiles();
+        
+        // 初始化算法说明（显示默认模型）
+        const modelSelect = document.getElementById('model');
+        if (modelSelect) {
+            updateAlgorithmInfo(modelSelect.value || 'linear');
+            // 当模型选择变化时，更新算法说明
+            modelSelect.addEventListener('change', (e) => {
+                updateAlgorithmInfo(e.target.value);
+            });
+        }
+
+        // 更新预测图表
+        const updatePredictionChart = (predictionResult) => {
+            if (!predictionChart || !predictionResult) return;
+            
+            const { historicalData, predictions } = predictionResult;
+            const allYears = [];
+            const historicalValues = [];
+            const predictedValues = [];
+            
+            // 历史数据
+            historicalData.forEach(item => {
+                const timeLabel = currentTimeFormat === 'yearmonth' 
+                    ? formatYearMonth(item.time) 
+                    : item.time.toString();
+                allYears.push(timeLabel);
+                historicalValues.push(item.value);
+                predictedValues.push(null);
+            });
+            
+            // 预测数据
+            predictions.forEach(item => {
+                const timeLabel = currentTimeFormat === 'yearmonth' 
+                    ? formatYearMonth(item.time) 
+                    : item.time.toString();
+                allYears.push(timeLabel);
+                historicalValues.push(null);
+                // 确保值不为null或undefined
+                predictedValues.push(item.value != null ? item.value : 0);
+            });
+            
+            predictionChart.data.labels = allYears;
+            predictionChart.data.datasets = [
+                {
+                    label: '历史数据',
+                    data: historicalValues,
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 4
+                },
+                {
+                    label: '预测数据',
+                    data: predictedValues,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    pointRadius: 4
+                }
+            ];
+            predictionChart.update();
+        };
+
+        // 预测表单提交
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentDataFile) {
+                common.showMessage('请先选择数据文件', 'error');
+                return;
+            }
+            
+            try {
+                const region = document.getElementById('region').value;
+                const indicator = document.getElementById('indicator').value;
+                const period = parseInt(document.getElementById('period').value) || 1;
+                const model = document.getElementById('model').value || 'linear';
+                
+                // 验证必填项
+                if (!region) {
+                    common.showMessage('请选择地区', 'error');
+                    return;
+                }
+                if (!indicator) {
+                    common.showMessage('请选择指标', 'error');
+                    return;
+                }
+                
+                // 根据时间格式获取时间范围
+                let startTime, endTime;
+                if (currentTimeFormat === 'yearmonth') {
+                    const startYear = document.getElementById('startYear')?.value;
+                    const startMonth = document.getElementById('startMonth')?.value;
+                    const endYear = document.getElementById('endYear')?.value;
+                    const endMonth = document.getElementById('endMonth')?.value;
+                    
+                    if (!startYear || !startMonth || !endYear || !endMonth) {
+                        common.showMessage('请填写完整的时间区间', 'error');
+                        return;
+                    }
+                    
+                    startTime = parseInt(startYear) * 100 + parseInt(startMonth);
+                    endTime = parseInt(endYear) * 100 + parseInt(endMonth);
+                } else {
+                    startTime = document.getElementById('startTime')?.value || null;
+                    endTime = document.getElementById('endTime')?.value || null;
+                    
+                    if (!startTime || !endTime) {
+                        common.showMessage('请选择完整的时间区间', 'error');
+                        return;
+                    }
+                    
+                    startTime = parseInt(startTime);
+                    endTime = parseInt(endTime);
+                }
+                
+                // 调用后端预测API
+                const response = await api.post('/prediction/predict', {
+                    filename: currentDataFile,
+                    area: region,
+                    indicator: indicator,
+                    startTime: startTime,
+                    endTime: endTime,
+                    period: period,
+                    model: model
+                });
+                
+                if (response.success && response.data) {
+                    const predictionResult = response.data;
+                    
+                    // 更新当前时间间隔和格式（从后端返回的结果中获取）
+                    currentTimeInterval = predictionResult.timeInterval;
+                    currentTimeFormat = predictionResult.timeFormat;
+                    
+                    // 更新图表
+                    updatePredictionChart(predictionResult);
+                    
+                    // 更新统计信息
+                    const statsDiv = document.getElementById('predictionStats');
+                    const { statistics } = predictionResult;
+                    const { avgValue, lastValue, predictedValue, growthRate } = statistics;
+                    
+                    // 根据时间格式和间隔确定预测值的单位文字
+                    let periodText;
+                    const unit = getIntervalUnit(currentTimeInterval);
+                    if (currentTimeFormat === 'yearmonth') {
+                        const totalMonths = period * currentTimeInterval;
+                        if (currentTimeInterval === 1) {
+                            periodText = `${period}个月后`;
+                        } else if (currentTimeInterval === 3) {
+                            periodText = `${period}个季度后`;
+                        } else if (currentTimeInterval === 6) {
+                            periodText = `${period}个半年后`;
+                        } else {
+                            periodText = `${period}${unit}后（${totalMonths}个月）`;
+                        }
+                    } else {
+                        const totalYears = period * currentTimeInterval;
+                        if (currentTimeInterval === 1) {
+                            periodText = `${period}年后`;
+                        } else {
+                            periodText = `${period}${unit}后（${totalYears}年）`;
+                        }
+                    }
+                    
+                    // 格式化数值，确保精度控制
+                    const formatValue = (value, decimals = 2) => {
+                        if (value === null || value === undefined) return '-';
+                        return typeof value === 'number' ? value.toFixed(decimals) : value;
+                    };
+                    
+                    const formatGrowthRate = (rate, decimals = 2) => {
+                        if (rate === null || rate === undefined) return '-';
+                        const numRate = typeof rate === 'number' ? rate : parseFloat(rate);
+                        if (isNaN(numRate)) return '-';
+                        return numRate.toFixed(decimals) + '%';
+                    };
+                    
+                    // 构建统计信息HTML
+                    let statsHTML = `
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <div class="text-sm text-gray-600">历史数据平均值</div>
+                                <div class="text-2xl font-bold text-blue-600">${formatValue(avgValue)}</div>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded-lg">
+                                <div class="text-sm text-gray-600">预测值（${periodText}）</div>
+                                <div class="text-2xl font-bold text-green-600">${formatValue(predictedValue)}</div>
+                            </div>
+                            <div class="p-4 bg-yellow-50 rounded-lg">
+                                <div class="text-sm text-gray-600">当前值</div>
+                                <div class="text-2xl font-bold text-yellow-600">${formatValue(lastValue)}</div>
+                            </div>
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <div class="text-sm text-gray-600">预计增长率</div>
+                                <div class="text-2xl font-bold text-purple-600">${formatGrowthRate(growthRate)}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    statsDiv.innerHTML = statsHTML;
+                    
+                    // 准备所有数据（预测数据倒序 + 历史数据倒序）
+                    const allTableData = [];
+                    
+                    // 预测数据（倒序，最新的预测值在前）
+                    const reversedPredictions = [...predictionResult.predictions].reverse();
+                    reversedPredictions.forEach(item => {
+                        const timeLabel = currentTimeFormat === 'yearmonth' 
+                            ? formatYearMonth(item.time) 
+                            : item.time.toString();
+                        allTableData.push({
+                            time: timeLabel,
+                            type: '预测',
+                            value: item.value != null ? item.value : 0,
+                            isPrediction: true,
+                            sortKey: item.time
+                        });
+                    });
+                    
+                    // 历史数据（倒序，最新的历史数据在前）
+                    const reversedHistoricalData = [...predictionResult.historicalData].reverse();
+                    reversedHistoricalData.forEach(item => {
+                        const timeLabel = currentTimeFormat === 'yearmonth' 
+                            ? formatYearMonth(item.time) 
+                            : item.time.toString();
+                        allTableData.push({
+                            time: timeLabel,
+                            type: '历史',
+                            value: item.value,
+                            isPrediction: false,
+                            sortKey: item.time
+                        });
+                    });
+                    
+                    // 分页设置
+                    let predictionPageSize = 20;
+                    let currentPredictionPage = 1;
+                    
+                    // 初始化分页HTML（确保在渲染表格前创建）
+                    const paginationContainer = document.getElementById('predictionTablePagination');
+                    if (paginationContainer) {
+                        paginationContainer.innerHTML = pagination.createPaginationHTML('predictionTablePagination', true);
+                    }
+                    
+                    // 渲染表格函数
+                    const renderTable = (page = 1) => {
+                        currentPredictionPage = page;
+                        const totalPages = Math.ceil(allTableData.length / predictionPageSize);
+                        const startIndex = (page - 1) * predictionPageSize;
+                        const endIndex = startIndex + predictionPageSize;
+                        const pageData = allTableData.slice(startIndex, endIndex);
+                        
+                        let tableHtml = `
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">时间</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">数值</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                        `;
+                        
+                        pageData.forEach(item => {
+                            const rowClass = item.isPrediction ? 'bg-green-50' : '';
+                            const typeClass = item.isPrediction ? 'text-green-600 font-medium' : 'text-gray-500';
+                            // 确保值不为null或undefined
+                            const value = item.value != null ? item.value : 0;
+                            
+                            tableHtml += `
+                                <tr class="${rowClass}">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.time}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm ${typeClass}">${item.type}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${value.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHtml += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        const tableDiv = document.getElementById('predictionTable');
+                        tableDiv.innerHTML = tableHtml;
+                        
+                        // 确保分页HTML已创建（如果之前没有创建）
+                        if (paginationContainer && !document.getElementById('predictionTablePaginationPageStart')) {
+                            paginationContainer.innerHTML = pagination.createPaginationHTML('predictionTablePagination', true);
+                        }
+                        
+                        // 使用分页组件渲染
+                        pagination.renderPagination({
+                            page: currentPredictionPage,
+                            totalPages: totalPages,
+                            total: allTableData.length,
+                            pageSize: predictionPageSize,
+                            containerId: 'predictionTablePagination',
+                            onPageChange: (newPage) => {
+                                renderTable(newPage);
+                            },
+                            onPageSizeChange: (newPageSize) => {
+                                predictionPageSize = newPageSize;
+                                currentPredictionPage = 1;
+                                renderTable(1);
+                            },
+                            maxButtons: 5,
+                            showPageSize: true
+                        });
+                    };
+                    
+                    // 初始渲染
+                    renderTable(1);
+                    
+                    // 更新算法说明
+                    updateAlgorithmInfo(model);
+                    
+                    common.showMessage('预测完成', 'success');
+                } else {
+                    throw new Error('未获取到数据，请检查筛选条件');
+                }
+            } catch (error) {
+                console.error('预测失败:', error);
+                common.showMessage('预测失败: ' + (error.message || '未知错误'), 'error');
+            }
+        });
+    </script>
+</body>
+</html>
+
