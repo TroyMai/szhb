@@ -5,12 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据详情 - 数智湖北</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js - 使用国内 CDN，无需 VPN -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" 
-            onerror="this.onerror=null;this.src='https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js'"></script>
-    <!-- ECharts - 使用国内 CDN，无需 VPN -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js" 
-            onerror="this.onerror=null;this.src='https://unpkg.com/echarts@5.4.3/dist/echarts.min.js'"></script>
+    <!-- Chart.js - 使用 jsDelivr（国内镜像加速），多个备用源 -->
+    <script>
+    (function() {
+        const sources = [
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://fastly.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js'
+        ];
+        let currentIndex = 0;
+        function loadScript() {
+            if (currentIndex >= sources.length) return;
+            const script = document.createElement('script');
+            script.src = sources[currentIndex];
+            script.onerror = function() {
+                currentIndex++;
+                loadScript();
+            };
+            script.onload = function() {
+                document.querySelectorAll('script[data-chart-fallback]').forEach(s => s.remove());
+            };
+            script.setAttribute('data-chart-fallback', 'true');
+            document.head.appendChild(script);
+        }
+        loadScript();
+    })();
+    </script>
+    <!-- ECharts - 使用 jsDelivr（国内镜像加速），多个备用源 -->
+    <script>
+    (function() {
+        const sources = [
+            'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+            'https://fastly.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+            'https://unpkg.com/echarts@5.4.3/dist/echarts.min.js'
+        ];
+        let currentIndex = 0;
+        function loadScript() {
+            if (currentIndex >= sources.length) return;
+            const script = document.createElement('script');
+            script.src = sources[currentIndex];
+            script.onerror = function() {
+                currentIndex++;
+                loadScript();
+            };
+            script.onload = function() {
+                document.querySelectorAll('script[data-echarts-fallback]').forEach(s => s.remove());
+            };
+            script.setAttribute('data-echarts-fallback', 'true');
+            document.head.appendChild(script);
+        }
+        loadScript();
+    })();
+    </script>
     <link rel="stylesheet" href="../public/css/common.css">
     <link rel="stylesheet" href="../public/css/components.css">
     <link rel="stylesheet" href="../public/css/footer.css">

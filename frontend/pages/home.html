@@ -5,9 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>首页 - 数智湖北</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js - 使用国内 CDN，无需 VPN -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" 
-            onerror="this.onerror=null;this.src='https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js'"></script>
+    <!-- Chart.js - 使用 jsDelivr（国内镜像加速），多个备用源 -->
+    <script>
+    (function() {
+        const sources = [
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://fastly.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            'https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js'
+        ];
+        let currentIndex = 0;
+        function loadScript() {
+            if (currentIndex >= sources.length) return;
+            const script = document.createElement('script');
+            script.src = sources[currentIndex];
+            script.onerror = function() {
+                currentIndex++;
+                loadScript();
+            };
+            script.onload = function() {
+                // 加载成功，移除其他备用脚本
+                document.querySelectorAll('script[data-chart-fallback]').forEach(s => s.remove());
+            };
+            script.setAttribute('data-chart-fallback', 'true');
+            document.head.appendChild(script);
+        }
+        loadScript();
+    })();
+    </script>
     <link rel="stylesheet" href="../public/css/common.css">
     <link rel="stylesheet" href="../public/css/cards.css">
     <link rel="stylesheet" href="../public/css/footer.css">
