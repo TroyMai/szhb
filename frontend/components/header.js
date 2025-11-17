@@ -136,10 +136,8 @@ const initHeader = async () => {
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
-                if (confirm('确定要退出登录吗？')) {
-                    const auth = await import('../utils/auth.js');
-                    auth.default.logout();
-                }
+                const auth = await import('../utils/auth.js');
+                auth.default.logout();
             });
         }
   }

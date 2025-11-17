@@ -6,6 +6,9 @@
 import api from '../utils/api.js';
 import common from '../utils/common.js';
 
+// 获取 showConfirm 函数
+const showConfirm = common.showConfirm;
+
 /**
  * 创建收藏按钮HTML（图标模式，用于表格等场景）
  * @param {number} dataId - 数据ID
@@ -256,7 +259,8 @@ const initTextButton = async (containerId, dataId, needConfirm = false) => {
       
       // 如果需要确认且当前是已收藏状态（点击会取消收藏）
       if (needConfirm && currentIsFavorite) {
-        if (!confirm('确定要取消收藏吗？')) {
+        const confirmed = await showConfirm('确定要取消收藏吗？', '取消收藏');
+        if (!confirmed) {
           return;
         }
       }
@@ -298,7 +302,8 @@ const initIconButtons = (onToggle = null, needConfirm = false) => {
         
         // 如果需要确认且当前是已收藏状态（点击会取消收藏）
         if (needConfirm && currentIsFavorite) {
-          if (!confirm('确定要取消收藏吗？')) {
+          const confirmed = await showConfirm('确定要取消收藏吗？', '取消收藏');
+          if (!confirmed) {
             return;
           }
         }

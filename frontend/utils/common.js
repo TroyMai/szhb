@@ -259,6 +259,119 @@ const showMessage = (message, type = 'info') => {
   }, 3000);
 };
 
+/**
+ * 转义 HTML 特殊字符
+ */
+const escapeHtml = (text) => {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+};
+
+/**
+ * 显示确认对话框（美观的自定义对话框）
+ * @param {string} message - 确认消息
+ * @param {string} title - 对话框标题（可选）
+ * @returns {Promise<boolean>} 用户确认返回 true，取消返回 false
+ */
+const showConfirm = (message, title = '确认操作') => {
+  return new Promise((resolve) => {
+    // 创建遮罩层
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    overlay.style.animation = 'fadeIn 0.2s ease-in-out';
+    
+    // 创建对话框
+    const dialog = document.createElement('div');
+    dialog.className = 'bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all';
+    dialog.style.animation = 'slideUp 0.3s ease-out';
+    
+    // 转义 HTML 防止 XSS
+    const safeTitle = escapeHtml(title);
+    const safeMessage = escapeHtml(message);
+    
+    dialog.innerHTML = `
+      <div class="p-6">
+        <div class="flex items-center mb-4">
+          <div class="flex-shrink-0 w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900">${safeTitle}</h3>
+        </div>
+        <p class="text-gray-600 mb-6 ml-12">${safeMessage}</p>
+        <div class="flex justify-end space-x-3">
+          <button class="confirm-btn px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">
+            确定
+          </button>
+          <button class="cancel-btn px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+            取消
+          </button>
+        </div>
+      </div>
+    `;
+    
+    // 添加样式（如果还没有）
+    if (!document.getElementById('confirm-dialog-styles')) {
+      const style = document.createElement('style');
+      style.id = 'confirm-dialog-styles';
+      style.textContent = `
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { 
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    
+    // 绑定事件
+    const cancelBtn = dialog.querySelector('.cancel-btn');
+    const confirmBtn = dialog.querySelector('.confirm-btn');
+    
+    const close = (result) => {
+      overlay.style.animation = 'fadeIn 0.2s ease-in-out reverse';
+      dialog.style.animation = 'slideUp 0.3s ease-out reverse';
+      setTimeout(() => {
+        overlay.remove();
+        resolve(result);
+      }, 200);
+    };
+    
+    cancelBtn.addEventListener('click', () => close(false));
+    confirmBtn.addEventListener('click', () => close(true));
+    
+    // 点击遮罩层关闭
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        close(false);
+      }
+    });
+    
+    // ESC 键关闭
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        close(false);
+        document.removeEventListener('keydown', handleEsc);
+      }
+    };
+    document.addEventListener('keydown', handleEsc);
+  });
+};
+
 export default {
   formatDate,
   formatNumber,
@@ -269,6 +382,7 @@ export default {
   debounce,
   throttle,
   deepClone,
-  showMessage
+  showMessage,
+  showConfirm
 };
 
